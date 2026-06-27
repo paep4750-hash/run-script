@@ -55,7 +55,6 @@ RunService.RenderStepped:Connect(function(deltaTime)
         end
     end
 end)
-
 -- Advanced ESP Master
 local function CreateESP(player)
     if player == LocalPlayer then return end
@@ -210,7 +209,6 @@ local function SetVirtualRig(targetType)
         fakeHumanoid:ChangeState(realHumanoid:GetState())
     end)
 end
-
 -- Toggle God Mode
 local function ToggleGodMode(state)
     HubSettings.GodModeEnabled = state
@@ -242,7 +240,6 @@ local function ToggleGodMode(state)
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
     end
 end
-
 -- [ Create Screen GUI Frames ]
 local existingUi = PlayerGui:FindFirstChild("GeminiScriptHub")
 if existingUi then existingUi:Destroy() end
