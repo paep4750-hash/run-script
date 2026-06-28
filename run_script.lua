@@ -1,8 +1,8 @@
 --[[
 ========================================================================
-[  PREMIUM PREMIUM MULTI-FUNCTION BYPASS HUB v3.4 (CLEAN EDITION)  ]
+[  PREMIUM MULTI-FUNCTION BYPASS HUB v3.5 (FORSAKEN EDITION)  ]
 ========================================================================
-สคริปต์ส่วนที่ 1: ระบบเริ่มต้น, บายพาสความเร็ว, ระบบกระโดดไม่จำกัด และระบบ ESP มองทะลุ
+สคริปต์ส่วนที่ 1: ระบบเริ่มต้น, บายพาสความเร็ว, กระโดดไม่จำกัด และระบบสแกนเครื่องปั่นไฟ
 --]]
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -16,8 +16,9 @@ if not PlayerGui then return end
 local HubSettings = {
 SpeedEnabled = false,
 SpeedMultiplier = 2,
-InfJumpEnabled = false, -- สถานะระบบกระโดดไม่จำกัด (Infinite Jump)
+InfJumpEnabled = false,
 EspEnabled = false,
+GenEspEnabled = false, -- สถานะระบบมองทะลุเครื่องปั่นไฟ (Generator ESP)
 InvisibleEnabled = false,
 RigMode = "Original",
 GodModeEnabled = false,
@@ -25,6 +26,7 @@ FpsBoostEnabled = false,
 FullBrightEnabled = false,
 }
 local EspObjects = {}
+local GenObjects = {} -- เก็บข้อมูลเครื่องปั่นไฟที่สแกนเจอ
 local GhostClone = nil
 local GhostPlatform = nil
 local RealCharacterCFrame = nil
@@ -101,7 +103,7 @@ setreadonly(gmt, true)
 end
 end
 pcall(SetupMetatableHook)
--- ดักสลับสปีดด้วยค่าแรงส่ง Assembly Linear Velocity ป้องกันอาการเดินแล้วโดนวาร์ปดึงกลับ
+-- ดักสลับสปีดป้องกันอาการเดินแล้วโดนวาร์ปดึงกลับ (Anti-Rubberband)
 RunService.RenderStepped:Connect(function(deltaTime)
 if HubSettings.SpeedEnabled and LocalPlayer.Character then
 local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
@@ -115,7 +117,7 @@ rootPart.CFrame = rootPart.CFrame + Vector3.new(moveVector.X * deltaTime, 0, mov
 end
 end
 end)
--- ทำงานระบบกระโดดไม่จำกัด (Infinite Jump Listener)
+-- ระบบกระโดดไม่จำกัด (Infinite Jump)
 UserInputService.JumpRequest:Connect(function()
 if HubSettings.InfJumpEnabled and LocalPlayer.Character then
 local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
@@ -124,7 +126,7 @@ humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
 end
 end
 end)
--- ระบบสแกนพิกัดผู้เล่นอื่นทะลุกำแพง (ESP Highlight)
+-- ระบบมองทะลุผู้เล่นอื่น (Player ESP Highlight)
 local function CreateESP(player)
 if player == LocalPlayer then return end
 local function applyEsp(character)
@@ -152,12 +154,110 @@ local highlight = player.Character:FindFirstChild("BypassESP")
 if highlight then highlight.Enabled = state else CreateESP(player) end
 end
 end
-Notify("อัปเดตระบบมองทะลุ", "ระบบสแกนรอบทิศทาง: " .. (state and "เปิดใช้งาน" or "ปิดการใช้งาน"))
+Notify("มองทะลุผู้เล่น", "ระบบสแกนพิกัดผู้เล่น: " .. (state and "เปิดใช้งาน" or "ปิดการใช้งาน"))
 end
 for _, p in ipairs(Players:GetPlayers()) do CreateESP(p) end
 Players.PlayerAdded:Connect(CreateESP)
 Players.PlayerRemoving:Connect(function(p) EspObjects[p.Name] = nil end)
--- บายพาสระบบล่องหนไม่ร่วงหล่นตกแผนที่ ด้วยระบบแผ่นพื้นลอยจำลองแรงรับน้ำหนัก
+--[[
+========================================================================
+[  PREMIUM MULTI-FUNCTION BYPASS HUB v3.5 (FORSAKEN EDITION)  ]
+========================================================================
+สคริปต์ส่วนที่ 2: ระบบวิเคราะห์พิกัดเครื่องปั่นไฟเรียลไทม์, ระบบอมตะ และบานโครงสร้าง ScreenGui หลัก
+--]]
+-- ระบบตรวจสอบและวาดกรอบไฟเรืองแสงเครื่องปั่นไฟใน Forsaken
+local function ApplyGeneratorESP(obj)
+if not obj or not obj.Parent then return end
+local isGen = false
+local lowerName = string.lower(obj.Name)
+-- วิเคราะห์จากชื่อของวัตถุ หรือส่วนประกอบปุ่มคำสั่งซ่อมหลังบ้านของตัวเกม
+if string.find(lowerName, "generator") or string.find(lowerName, "gen") or string.find(lowerName, "computer") or string.find(lowerName, "engine") then
+isGen = true
+else
+-- เจาะระบบหา ProximityPrompt ซ่อมแซมเพื่อความแม่นยำสูง
+for _, child in ipairs(obj:GetDescendants()) do
+if child:IsA("ProximityPrompt") then
+local actText = string.lower(child.ActionText)
+if string.find(actText, "repair") or string.find(actText, "fix") or string.find(actText, "ซ่อม") or string.find(actText, "ปั่น") then
+isGen = true
+break
+end
+end
+end
+end
+if isGen then
+if obj:FindFirstChild("GenBypassESP") then return end
+-- ตรวจสอบจุดกึ่งกลางของเครื่องปั่นไฟ
+local targetPart = obj:IsA("Model") and (obj.PrimaryPart or obj:FindFirstChildOfClass("BasePart")) or obj
+if not targetPart then return end
+-- เสกกรอบเรืองแสงสีเขียวนีออนครอบเครื่องปั่นไฟ
+local highlight = create("Highlight", obj, {
+Name = "GenBypassESP",
+FillColor = Color3.fromRGB(0, 255, 128),
+FillTransparency = 0.5,
+OutlineColor = Color3.fromRGB(255, 255, 255),
+OutlineTransparency = 0,
+Enabled = HubSettings.GenEspEnabled
+})
+-- สร้างป้ายชื่อและวัดระยะทางลอยเหนือหัวเครื่องปั่นไฟ
+local billboard = create("BillboardGui", obj, {
+Name = "GenEspTag",
+Size = UDim2.new(0, 120, 0, 40),
+AlwaysOnTop = true,
+ExtentsOffset = Vector3.new(0, 3, 0),
+Adornee = targetPart,
+Enabled = HubSettings.GenEspEnabled
+})
+local label = create("TextLabel", billboard, {
+Size = UDim2.new(1, 0, 1, 0),
+BackgroundTransparency = 1,
+TextColor3 = Color3.fromRGB(0, 255, 128),
+TextStrokeTransparency = 0,
+TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
+Font = Enum.Font.SourceSansBold,
+TextSize = 11,
+Text = "⚡ [เครื่องปั่นไฟ]"
+})
+GenObjects[obj] = {Highlight = highlight, Label = label, Billboard = billboard, Target = targetPart}
+end
+end
+-- วนลูปสแกนแผนที่ใหม่เพื่อจับพิกัดเครื่องปั่นไฟที่เพิ่งเกิด
+local function ToggleGenESP(state)
+HubSettings.GenEspEnabled = state
+if state then
+for _, v in ipairs(workspace:GetDescendants()) do
+pcall(ApplyGeneratorESP, v)
+end
+end
+for _, data in pairs(GenObjects) do
+if data.Highlight then data.Highlight.Enabled = state end
+if data.Billboard then data.Billboard.Enabled = state end
+end
+Notify("เครื่องปั่นไฟ ESP", "มองทะลุเครื่องปั่นไฟ: " .. (state and "เปิดใช้งาน" or "ปิดการใช้งาน"))
+end
+-- เพิ่มเครื่องปั่นไฟใหม่เข้าสู่ตัวดักฟัง หากมีการโหลดพาร์ทใหม่เข้ามาในด่าน
+workspace.DescendantAdded:Connect(function(descendant)
+if HubSettings.GenEspEnabled then
+task.wait(1)
+pcall(ApplyGeneratorESP, descendant)
+end
+end)
+-- คอยคำนวณและอัปเดตระยะทางเมตร (m) ของเครื่องปั่นไฟแบบเรียลไทม์
+RunService.Heartbeat:Connect(function()
+if HubSettings.GenEspEnabled then
+for obj, data in pairs(GenObjects) do
+if obj and obj.Parent and data.Target then
+if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+local dist = math.floor((LocalPlayer.Character.HumanoidRootPart.Position - data.Target.Position).Magnitude)
+data.Label.Text = "⚡ [เครื่องปั่นไฟ] (" .. dist .. "ม.)"
+end
+else
+GenObjects[obj] = nil
+end
+end
+end
+end)
+-- บายพาสโหมดล่องหนไม่ตกแมพ
 local function ToggleInvisibility(state)
 HubSettings.InvisibleEnabled = state
 local char = LocalPlayer.Character
@@ -199,12 +299,6 @@ end
 Notify("ระบบล่องหน", "ปิดใช้งานโหมดล่องหน - เชื่อมตำแหน่งคืนสู่ปกติแล้ว")
 end
 end
---[[
-========================================================================
-[  PREMIUM MULTI-FUNCTION BYPASS HUB v3.4 (CLEAN EDITION)  ]
-========================================================================
-สคริปต์ส่วนที่ 2: ระบบสลับกระดูกตัวละครจำลอง (R6/R15), ฟังก์ชันอมตะหลอกดาเมจ และเฟรมสร้างเมนูหลัก
---]]
 -- ล้างพิกัดโครงสร้างกระดูกจำลองเดิม
 local function ClearVirtualRig()
 if RigConnection then RigConnection:Disconnect() RigConnection = nil end
@@ -221,7 +315,7 @@ local camera = workspace.CurrentCamera
 if char:FindFirstChildOfClass("Humanoid") then camera.CameraSubject = char:FindFirstChildOfClass("Humanoid") end
 end
 end
--- ระบบจำลองโครงข้อต่อ R6 / R15 เพื่อ bypass สแกนความเร็วฟิสิกส์ชิ้นส่วน
+-- สลับโครงกระดูกจำลองหลบเลี่ยงระบบตรวจจับตัวละคร R6 / R15
 local function SetVirtualRig(targetType)
 ClearVirtualRig()
 local char = LocalPlayer.Character
@@ -271,7 +365,7 @@ fakeHumanoid:ChangeState(realHumanoid:GetState())
 end)
 Notify("เปลี่ยนกระดูกตัวละครสำเร็จ", "ปรับโครงสร้างเป็นแบบ: " .. targetType)
 end
--- ระบบโคลนและสลับสิทธิ์รับค่าความเสียหายเพื่อทำเป็นอมตะ (True God Mode Humanoid Swap)
+-- อมตะขั้นสูงถอดช่องรับดาเมจของเซิร์ฟเวอร์
 local function ToggleGodMode(state)
 HubSettings.GodModeEnabled = state
 local char = LocalPlayer.Character
@@ -305,7 +399,7 @@ if GodModeConnection then GodModeConnection:Disconnect() GodModeConnection = nil
 Notify("ปิดโหมดอมตะ", "หากตัวละครเกิดอาการบั๊กจากการได้รับดาเมจ กรุณากดตัวตายเพื่อคืนค่าสู่สภาวะปกติ")
 end
 end
--- [ สร้างเฟรมเมนูแสดงผลหลักบนหน้าต่างแท็บเล็ต ]
+-- [ สร้างหน้าต่างควบคุมหลักบนแท็บเล็ต ]
 local existingUi = PlayerGui:FindFirstChild("PremiumScriptHub")
 if existingUi then existingUi:Destroy() end
 local PremiumScriptHub = create("ScreenGui", PlayerGui, {Name = "PremiumScriptHub", ResetOnSpawn = false})
@@ -329,12 +423,19 @@ create("UICorner", HeaderDecor, {CornerRadius = UDim.new(0, 10)})
 local TitleBar = create("TextLabel", MainFrame, {
 Size = UDim2.new(1, 0, 0, 35),
 BackgroundTransparency = 1,
-Text = "  PREMIUM SCRIPT BYPASS HUB [V3.4 รุ่นกระโดดฟรี]",
+Text = "  PREMIUM SCRIPT BYPASS HUB [V3.5 FORSAKEN-EDITION]",
 TextColor3 = Color3.fromRGB(240, 240, 255),
 TextSize = 13,
 Font = Enum.Font.SourceSansBold,
 TextXAlignment = Enum.TextXAlignment.Left
 })
+
+-- [[
+--    ========================================================================
+--    [  PREMIUM MULTI-FUNCTION BYPASS HUB v3.5 (FORSAKEN EDITION)  ]
+--    ========================================================================
+--    สคริปต์ส่วนที่ 3: ปุ่มย่อขยายหน้าจอ, แท็บเมนูควบคุมความเร็ว, กระโดดไม่จำกัด, แสดงพิกัดปั่นไฟ และปุ่มวาร์ป
+-- ]]
 local CloseButton = create("TextButton", MainFrame, {
 Size = UDim2.new(0, 30, 0, 30),
 Position = UDim2.new(1, -35, 0, 2),
@@ -415,13 +516,6 @@ BackgroundTransparency = 1,
 Visible = order == 1
 })
 Frames[name] = {Button = btn, Frame = viewFrame}
-
--- [[
---    ========================================================================
---    [  PREMIUM MULTI-FUNCTION BYPASS HUB v3.4 (CLEAN EDITION)  ]
---    ========================================================================
---    สคริปต์ส่วนที่ 3: ตัวจัดการเปลี่ยนหน้าแท็บเมนูด้านซ้าย และฟังก์ชันปุ่มคำสั่งทั้งหมดรวมถึงระบบภาพลื่นและ Infinite Jump
--- ]]
 btn.MouseButton1Click:Connect(function()
 for _, t in pairs(Frames) do
 t.Button.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
@@ -436,24 +530,16 @@ return viewFrame
 end
 -- สร้างเมนูแท็บย่อยทั้งหมด 8 แท็บ
 local ExecView = CreateTab("รันสคริปต์", 1)
-local SpeedView = CreateTab("สปีด & กระโดด", 2) -- เพิ่มระบบควบคุมการกระโดดเข้ามาในแท็บนี้
-local EspView = CreateTab("มองทะลุตัวละคร", 3)
+local SpeedView = CreateTab("สปีด & กระโดด", 2)
+local EspView = CreateTab("ระบบมองทะลุ", 3) -- รวมมองทะลุคน และเครื่องปั่นไฟไว้แท็บนี้
 local GhostView = CreateTab("โหมดล่องหน", 4)
 local RigView = CreateTab("แปลงร่างจำลอง", 5)
 local GodView = CreateTab("โหมดอมตะเทพ", 6)
 local TeleportView = CreateTab("วาร์ปผู้เล่น", 7)
 local VisualView = CreateTab("ภาพลื่น & สว่าง", 8)
--- [ ตกแต่งแท็บที่ 1: หน้ารันสคริปต์ ]
+-- [ แท็บที่ 1: รันสคริปต์ ]
 local ScriptBox = create("TextBox", ExecView, {
-Size = UDim2.new(1, 0, 0.78, 0),
-BackgroundColor3 = Color3.fromRGB(5, 5, 8),
-TextColor3 = Color3.fromRGB(200, 200, 200),
-Font = Enum.Font.Code,
-Text = "-- วางสคริปต์ที่ต้องการรันเพิ่มเติมตรงนี้...",
-MultiLine = true,
-ClearTextOnFocus = false,
-TextXAlignment = Enum.TextXAlignment.Left,
-TextYAlignment = Enum.TextYAlignment.Top
+Size = UDim2.new(1, 0, 0.78, 0), BackgroundColor3 = Color3.fromRGB(5, 5, 8), TextColor3 = Color3.fromRGB(200, 200, 200), Font = Enum.Font.Code, Text = "-- วางสคริปต์เพิ่มเติมตรงนี้...", MultiLine = true, ClearTextOnFocus = false, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top
 })
 create("UICorner", ScriptBox, {CornerRadius = UDim.new(0, 4)})
 local ExecuteBtn = create("TextButton", ExecView, {Size = UDim2.new(0.48, 0, 0.18, 0), Position = UDim2.new(0, 0, 0.82, 0), BackgroundColor3 = Color3.fromRGB(0, 150, 80), Text = "รันสคริปต์", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, TextSize = 13})
@@ -461,12 +547,12 @@ local ClearBtn = create("TextButton", ExecView, {Size = UDim2.new(0.48, 0, 0.18,
 ExecuteBtn.MouseButton1Click:Connect(function()
 local success, err = pcall(function()
 local f = loadstring(ScriptBox.Text)
-if f then f() else error("ไวยากรณ์สคริปต์ทำงานขัดข้อง") end
+if f then f() else error("ไวยากรณ์ผิดพลาด") end
 end)
-if not success then ScriptBox.Text = "-- พบข้อผิดพลาดในสคริปต์:\n" .. tostring(err) end
+if not success then ScriptBox.Text = "-- ข้อผิดพลาด:\n" .. tostring(err) end
 end)
 ClearBtn.MouseButton1Click:Connect(function() ScriptBox.Text = "" end)
--- [ ตกแต่งแท็บที่ 2: หน้าสปีดบายพาส และกระโดดไม่จำกัด ]
+-- [ แท็บที่ 2: สปีด และกระโดด ]
 local SpeedToggle = create("TextButton", SpeedView, {Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = Color3.fromRGB(150, 40, 40), Text = "เปิดระบบสปีดบายพาส: ปิด", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, TextSize = 13})
 SpeedToggle.MouseButton1Click:Connect(function()
 HubSettings.SpeedEnabled = not HubSettings.SpeedEnabled
@@ -489,32 +575,33 @@ end
 SliderBtn.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then isDragging = true end end)
 UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then isDragging = false end end)
 UserInputService.InputChanged:Connect(function(input) if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then UpdateSlider(input) end end)
--- ปุ่มควบคุมฟังก์ชัน Infinite Jump (เพิ่มใหม่)
-local InfJumpToggle = create("TextButton", SpeedView, {
-Size = UDim2.new(1, 0, 0, 40),
-Position = UDim2.new(0, 0, 0, 95),
-BackgroundColor3 = Color3.fromRGB(150, 40, 40),
-Text = "เปิดระบบกระโดดไม่จำกัด (Infinite Jump): ปิด",
-TextColor3 = Color3.fromRGB(255, 255, 255),
-Font = Enum.Font.SourceSansBold,
-TextSize = 13
-})
+local InfJumpToggle = create("TextButton", SpeedView, {Size = UDim2.new(1, 0, 0, 40), Position = UDim2.new(0, 0, 0, 95), BackgroundColor3 = Color3.fromRGB(150, 40, 40), Text = "เปิดระบบกระโดดไม่จำกัด (Infinite Jump): ปิด", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, TextSize = 13})
 create("UICorner", InfJumpToggle, {CornerRadius = UDim.new(0, 6)})
 InfJumpToggle.MouseButton1Click:Connect(function()
 HubSettings.InfJumpEnabled = not HubSettings.InfJumpEnabled
 InfJumpToggle.BackgroundColor3 = HubSettings.InfJumpEnabled and Color3.fromRGB(0, 150, 80) or Color3.fromRGB(150, 40, 40)
 InfJumpToggle.Text = "เปิดระบบกระโดดไม่จำกัด (Infinite Jump): " .. (HubSettings.InfJumpEnabled and "เปิด" or "ปิด")
-Notify("อัปเดตระบบกระโดด", "ระบบกระโดดลอยฟ้าไม่จำกัด: " .. (HubSettings.InfJumpEnabled and "เปิดใช้งานแล้ว" or "ปิดการใช้งานแล้ว"))
+Notify("ระบบกระโดด", "กระโดดไม่จำกัด: " .. (HubSettings.InfJumpEnabled and "เปิดใช้งาน" or "ปิดใช้งาน"))
 end)
--- [ ตกแต่งแท็บที่ 3: ระบบมองทะลุ ]
-local EspToggle = create("TextButton", EspView, {Size = UDim2.new(1, 0, 0, 45), BackgroundColor3 = Color3.fromRGB(150, 40, 40), Text = "เปิดระบบแสดงกรอบเรืองแสง (ESP): ปิด", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, TextSize = 14})
+-- [ แท็บที่ 3: ระบบมองทะลุ (ESP) รวมคน และเครื่องปั่นไฟ ]
+local EspToggle = create("TextButton", EspView, {Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = Color3.fromRGB(150, 40, 40), Text = "มองทะลุผู้เล่นคนอื่น (ESP): ปิด", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, TextSize = 13})
+create("UICorner", EspToggle, {CornerRadius = UDim.new(0, 6)})
 EspToggle.MouseButton1Click:Connect(function()
 local state = not HubSettings.EspEnabled
 ToggleESP(state)
 EspToggle.BackgroundColor3 = state and Color3.fromRGB(0, 150, 80) or Color3.fromRGB(150, 40, 40)
-EspToggle.Text = "เปิดระบบแสดงกรอบเรืองแสง (ESP): " .. (state and "เปิด" or "ปิด")
+EspToggle.Text = "มองทะลุผู้เล่นคนอื่น (ESP): " .. (state and "เปิด" or "ปิด")
 end)
--- [ ตกแต่งแท็บที่ 4: หน้าล่องหนบายพาส ]
+-- ปุ่มเปิดปิดมองทะลุเครื่องปั่นไฟ (เพิ่มใหม่เพื่อความสะดวกใน Forsaken!)
+local GenEspToggle = create("TextButton", EspView, {Size = UDim2.new(1, 0, 0, 40), Position = UDim2.new(0, 0, 0, 50), BackgroundColor3 = Color3.fromRGB(150, 40, 40), Text = "มองทะลุเครื่องปั่นไฟ (Generator ESP): ปิด", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, TextSize = 13})
+create("UICorner", GenEspToggle, {CornerRadius = UDim.new(0, 6)})
+GenEspToggle.MouseButton1Click:Connect(function()
+local state = not HubSettings.GenEspEnabled
+ToggleGenESP(state)
+GenEspToggle.BackgroundColor3 = state and Color3.fromRGB(0, 150, 80) or Color3.fromRGB(150, 40, 40)
+GenEspToggle.Text = "มองทะลุเครื่องปั่นไฟ (Generator ESP): " .. (state and "เปิด" or "ปิด")
+end)
+-- [ แท็บที่ 4: โหมดล่องหน ]
 local GhostToggle = create("TextButton", GhostView, {Size = UDim2.new(1, 0, 0, 45), BackgroundColor3 = Color3.fromRGB(150, 40, 40), Text = "เปิดโหมดล่องหนปลอดภัย: ปิด", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, TextSize = 14})
 GhostToggle.MouseButton1Click:Connect(function()
 local state = not HubSettings.InvisibleEnabled
@@ -522,7 +609,7 @@ ToggleInvisibility(state)
 GhostToggle.BackgroundColor3 = state and Color3.fromRGB(0, 150, 80) or Color3.fromRGB(150, 40, 40)
 GhostToggle.Text = "เปิดโหมดล่องหนปลอดภัย: " .. (state and "เปิด" or "ปิด")
 end)
--- [ ตกแต่งแท็บที่ 5: สลับกระดูกจำลองตัวละคร ]
+-- [ แท็บที่ 5: สลับร่างกระดูกจำลอง ]
 local RigTitle = create("TextLabel", RigView, {Size = UDim2.new(1, 0, 0, 30), BackgroundTransparency = 1, Text = "ควบคุมระบบจำลองกระดูกต้านตรวจแบน", TextColor3 = Color3.fromRGB(200, 200, 255), Font = Enum.Font.SourceSansBold, TextSize = 13})
 local SwitchR6Btn = create("TextButton", RigView, {Size = UDim2.new(0.31, 0, 0, 40), Position = UDim2.new(0, 0, 0, 45), BackgroundColor3 = Color3.fromRGB(30, 30, 35), Text = "จำลองร่าง R6", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, TextSize = 13})
 local SwitchR15Btn = create("TextButton", RigView, {Size = UDim2.new(0.31, 0, 0, 40), Position = UDim2.new(0.34, 0, 0, 45), BackgroundColor3 = Color3.fromRGB(30, 30, 35), Text = "จำลองร่าง R15", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, TextSize = 13})
@@ -530,18 +617,18 @@ local ResetRigBtn = create("TextButton", RigView, {Size = UDim2.new(0.31, 0, 0, 
 SwitchR6Btn.MouseButton1Click:Connect(function() SetVirtualRig("R6") RigTitle.Text = "สถานะโหมดกระดูกจำลอง: R6" end)
 SwitchR15Btn.MouseButton1Click:Connect(function() SetVirtualRig("R15") RigTitle.Text = "สถานะโหมดกระดูกจำลอง: R15" end)
 ResetRigBtn.MouseButton1Click:Connect(function() ClearVirtualRig() RigTitle.Text = "สถานะโหมดกระดูกจำลอง: ร่างเดิมโรงงาน" end)
--- [ ตกแต่งแท็บที่ 6: ระบบอมตะเทพ ]
+-- [ แท็บที่ 6: อมตะเทพ ]
 local GodTitle = create("TextLabel", GodView, {Size = UDim2.new(1, 0, 0, 30), BackgroundTransparency = 1, Text = "ควบคุมระบบอมตะถอดสิทธิ์รับดาเมจความเสียหาย", TextColor3 = Color3.fromRGB(200, 200, 255), Font = Enum.Font.SourceSansBold, TextSize = 13})
 local GodToggle = create("TextButton", GodView, {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 45), BackgroundColor3 = Color3.fromRGB(150, 40, 40), Text = "เปิดการต้านทานความตาย (อมตะ): ปิด", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, TextSize = 14})
 create("UICorner", GodToggle, {CornerRadius = UDim.new(0, 6)})
-create("TextLabel", GodView, {Size = UDim2.new(1, 0, 0, 60), Position = UDim2.new(0, 0, 0, 105), BackgroundTransparency = 1, Text = "ฟังก์ชันอมตะ Bypass v3.4:\n• ปิดการตายจากการชนหรือคอหัก\n• ระบบเช็ดเลือดและฟื้นฟูวินาทีต่อวินาที\n• สลับสิทธิ์ Humanoid หลบการถูกทำลายจากเซิร์ฟเวอร์", TextColor3 = Color3.fromRGB(170, 170, 175), Font = Enum.Font.SourceSans, TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left})
+create("TextLabel", GodView, {Size = UDim2.new(1, 0, 0, 60), Position = UDim2.new(0, 0, 0, 105), BackgroundTransparency = 1, Text = "ฟังก์ชันอมตะ Bypass v3.5:\n• ปิดการตายจากการชนหรือคอหัก\n• ระบบเช็ดเลือดและฟื้นฟูวินาทีต่อวินาที\n• สลับสิทธิ์ Humanoid หลบการถูกทำลายจากเซิร์ฟเวอร์", TextColor3 = Color3.fromRGB(170, 170, 175), Font = Enum.Font.SourceSans, TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left})
 GodToggle.MouseButton1Click:Connect(function()
 local state = not HubSettings.GodModeEnabled
 ToggleGodMode(state)
 GodToggle.BackgroundColor3 = state and Color3.fromRGB(0, 150, 80) or Color3.fromRGB(150, 40, 40)
 GodToggle.Text = "เปิดการต้านทานความตาย (อมตะ): " .. (state and "เปิด" or "ปิด")
 end)
--- [ ตกแต่งแท็บที่ 7: หน้าวาร์ปหาผู้เล่น ]
+-- [ แท็บที่ 7: วาร์ปหาคน ]
 local TeleportTitle = create("TextLabel", TeleportView, {Size = UDim2.new(1, 0, 0, 30), BackgroundTransparency = 1, Text = "ป้อนตัวอักษรบางส่วนของชื่อและกดยืนยัน", TextColor3 = Color3.fromRGB(200, 200, 255), Font = Enum.Font.SourceSansBold, TextSize = 13})
 local PlayerInput = create("TextBox", TeleportView, {
 Size = UDim2.new(1, 0, 0, 40), Position = UDim2.new(0, 0, 0, 40), BackgroundColor3 = Color3.fromRGB(5, 5, 8), TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, Text = "", PlaceholderText = "พิมพ์ชื่อผู้เล่นที่นี่...", TextSize = 14
@@ -574,7 +661,7 @@ else
 Notify("ค้นหาล้มเหลว", "ไม่พบชื่อนี้ในเซิร์ฟเวอร์หรือผู้เล่นออฟไลน์")
 end
 end)
--- [ ตกแต่งแท็บที่ 8: เมนูลดกราฟิกภาพลื่น และเพิ่มความสว่าง (FPS Boost & Full Bright) ]
+-- [ แท็บที่ 8: ภาพลื่น & แสงสว่าง ]
 local FpsToggle = create("TextButton", VisualView, {
 Size = UDim2.new(1, 0, 0, 45), BackgroundColor3 = Color3.fromRGB(150, 40, 40), Text = "เปิดใช้งานระบบเพิ่มเฟรมเรต (FPS Boost): ปิด", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, TextSize = 13
 })
@@ -583,7 +670,6 @@ local BrightToggle = create("TextButton", VisualView, {
 Size = UDim2.new(1, 0, 0, 45), Position = UDim2.new(0, 0, 0, 55), BackgroundColor3 = Color3.fromRGB(150, 40, 40), Text = "เปิดโหมดความสว่างสูงสุด (Full Bright): ปิด", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, TextSize = 13
 })
 create("UICorner", BrightToggle, {CornerRadius = UDim.new(0, 6)})
--- อัลกอริทึมลดกราฟิกเพื่อให้เครื่องลื่นขึ้น (FPS Boost)
 local function OptimizeGraphics(state)
 HubSettings.FpsBoostEnabled = state
 if state then
@@ -608,7 +694,6 @@ else
 Notify("คำเตือนระบบภาพ", "ปิดใช้งานระบบลดกราฟิกแล้ว คุณสามารถรีเซ็ตตัวละครเพื่อคืนค่ากราฟิกปกติได้")
 end
 end
--- อัลกอริทึมเปิดสว่างตอนกลางคืนทะลุมิติ (Full Bright System)
 local function OptimizeBrightness(state)
 HubSettings.FullBrightEnabled = state
 if state then
@@ -637,5 +722,5 @@ OptimizeBrightness(state)
 BrightToggle.BackgroundColor3 = state and Color3.fromRGB(0, 150, 80) or Color3.fromRGB(150, 40, 40)
 BrightToggle.Text = "เปิดโหมดความสว่างสูงสุด (Full Bright): " .. (state and "เปิด" or "ปิด")
 end)
--- แจ้งเตือนสคริปต์โหลดเสร็จสมบูรณ์เรียบร้อย
 Notify("Premium Script โหลดเสร็จสิ้น", "ระบบความคุ้มครองความปลอดภัยเชื่อมโยงสำเร็จแล้ว")
+
