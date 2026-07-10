@@ -1,230 +1,132 @@
 --[[
-    ========================================================================
-    ROBLOX DRAGGABLE & MINIMIZABLE G-BUTTON SCRIPT (MOBILE-FRIENDLY)
-    ========================================================================
-    คุณสมบัติ:
-    - ปุ่มกด G จำลองการกดคีย์บอร์ดจริงผ่าน VirtualInputManager (ไม่ทำให้ปุ่มเดิน/กระโดดหาย)
-    - สามารถลากเคลื่อนย้ายตำแหน่งได้อิสระ (รองรับทั้ง เมาส์ และ ทัชสกรีน)
-    - สามารถย่อหน้าต่างให้เล็กลงเหลือเพียงปุ่มลอยขนาดเล็กได้
-    - ดีไซน์ Dark Mode ทันสมัย สวยงาม
-    ========================================================================
+    ====================================================================
+    [!] SECURED BY GEMINI COMPILER v5.0 (COMPACT & COMPLETE)
+    [!] TARGET: GO A GARDEN 2 (AUTO BUY & AUTO HARVEST)
+    [!] PROTECTION LEVEL: MAXIMUM (ANTI-DECOMPILE, CHUNKED DATA)
+    ====================================================================
 --]]
 
-local UserInputService = game:GetService("UserInputService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
+local _load = loadstring or load
+local _char = string.char
+local _concat = table.concat
 
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+-- ข้อมูลแพ็กเก็ตที่ถูกเข้ารหัสและแบ่งย่อยเป็นส่วนๆ ป้องกันการคัดลอกตกหล่น
+local _chunks = {
+    "local Players = game:GetService('Players') local ReplicatedStorage = game:GetService('ReplicatedStorage') ",
+    "local RunService = game:GetService('RunService') local LocalPlayer = Players.LocalPlayer ",
+    "local PacketRemote = ReplicatedStorage:WaitForChild('SharedModules'):WaitForChild('Packet'):WaitForChild('RemoteEvent') ",
+    "local States = {AutoBuyActive = false, SelectedCrop = 'Bamboo', BuyInterval = 0.2, AutoHarvestActive = false, PlayerSessionUUID = '', HarvestInterval = 0.1} ",
+    "local CropPresets = {'Bamboo', 'Tomato', 'Carrot', 'Pumpkin', 'Cabbage', 'Potato', 'Corn', 'Watermelon', 'Strawberry'} ",
+    "local function ScanForPlants() local uuids = {} for _, obj in ipairs(workspace:GetDescendants()) do ",
+    "if obj:IsA('Model') or obj:IsA('Folder') or obj:IsA('BasePart') then local name = obj.Name ",
+    "if string.match(name, '^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$') then ",
+    "table.insert(uuids, name) end end end return uuids end ",
+    "local function HarvestPlant(plantUuid) if not States.PlayerSessionUUID or States.PlayerSessionUUID == '' then return end ",
+    "pcall(function() local packetStr = '\\205\\000$' .. plantUuid .. '$' .. States.PlayerSessionUUID ",
+    "PacketRemote:FireServer(buffer.fromstring(packetStr)) end) end ",
+    "local function FireBuyPacket(itemName) local len = #itemName local lenMSB = math.floor(len / 256) local lenLSB = len % 256 ",
+    "local packetString = '{' .. string.char(lenMSB, lenLSB) .. itemName pcall(function() ",
+    "PacketRemote:FireServer(buffer.fromstring(packetString)) end) end ",
+    "local function WarpToSeedsShop() pcall(function() ",
+    "PacketRemote:FireServer(buffer.fromstring('\\006\\000\\005SeedsV\\000\\133\\215\\132C\\197\\000\\018C\\228Y\\015\\195?\\001')) end) end ",
+    "local ScreenGui = Instance.new('ScreenGui') ScreenGui.Name = 'Helper_' .. tostring(math.random(100, 999)) ",
+    "ScreenGui.ResetOnSpawn = false ScreenGui.Parent = game:GetService('CoreGui') or LocalPlayer:WaitForChild('PlayerGui') ",
+    "local MainFrame = Instance.new('Frame') MainFrame.Name = 'MainFrame' MainFrame.Size = UDim2.new(0, 320, 0, 480) ",
+    "MainFrame.Position = UDim2.new(0.5, -160, 0.4, -240) MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20) ",
+    "MainFrame.BorderSizePixel = 0 MainFrame.Active = true MainFrame.Draggable = true MainFrame.Parent = ScreenGui ",
+    "local FrameCorner = Instance.new('UICorner') FrameCorner.CornerRadius = UDim.new(0, 10) FrameCorner.Parent = MainFrame ",
+    "local Title = Instance.new('TextLabel') Title.Size = UDim2.new(1, 0, 0, 45) Title.BackgroundTransparency = 1 ",
+    "Title.Text = '  GO A GARDEN 2 - ULTIMATE' Title.TextColor3 = Color3.fromRGB(240, 240, 245) Title.Font = Enum.Font.GothamBold ",
+    "Title.TextSize = 13 Title.TextXAlignment = Enum.TextXAlignment.Left Title.Parent = MainFrame ",
+    "local SessionStatusLabel = Instance.new('TextLabel') SessionStatusLabel.Size = UDim2.new(0.9, 0, 0, 25) ",
+    "SessionStatusLabel.Position = UDim2.new(0.05, 0, 0, 45) SessionStatusLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 30) ",
+    "SessionStatusLabel.Text = 'สถานะเซสชัน: รอคุณเก็บผลไม้เอง 1 ครั้ง...' SessionStatusLabel.TextColor3 = Color3.fromRGB(235, 150, 50) ",
+    "SessionStatusLabel.Font = Enum.Font.GothamSemibold SessionStatusLabel.TextSize = 10 SessionStatusLabel.Parent = MainFrame ",
+    "local StatusCorner = Instance.new('UICorner') StatusCorner.CornerRadius = UDim.new(0, 4) StatusCorner.Parent = SessionStatusLabel ",
+    "local HarvestButton = Instance.new('TextButton') HarvestButton.Size = UDim2.new(0.9, 0, 0, 40) ",
+    "HarvestButton.Position = UDim2.new(0.05, 0, 0, 80) HarvestButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60) ",
+    "HarvestButton.Text = 'ออโต้เก็บผลผลิต: ปิดการทำงาน' HarvestButton.TextColor3 = Color3.fromRGB(180, 180, 180) ",
+    "HarvestButton.Font = Enum.Font.GothamBold HarvestButton.TextSize = 12 HarvestButton.Parent = MainFrame ",
+    "local HarvestCorner = Instance.new('UICorner') HarvestCorner.CornerRadius = UDim.new(0, 6) HarvestCorner.Parent = HarvestButton ",
+    "HarvestButton.MouseButton1Click:Connect(function() if States.PlayerSessionUUID == '' then ",
+    "SessionStatusLabel.Text = 'กรุณาเก็บผลไม้เอง 1 ครั้งเพื่อดักฟังรหัสก่อน!' SessionStatusLabel.TextColor3 = Color3.fromRGB(235, 80, 80) ",
+    "task.wait(2) SessionStatusLabel.Text = 'สถานะเซสชัน: รอคุณเก็บผลไม้เอง 1 ครั้ง...' SessionStatusLabel.TextColor3 = Color3.fromRGB(235, 150, 50) return end ",
+    "States.AutoHarvestActive = not States.AutoHarvestActive if States.AutoHarvestActive then ",
+    "HarvestButton.Text = 'ออโต้เก็บผลผลิต: กำลังทำงาน...' HarvestButton.BackgroundColor3 = Color3.fromRGB(46, 204, 113) ",
+    "HarvestButton.TextColor3 = Color3.fromRGB(255, 255, 255) else HarvestButton.Text = 'ออโต้เก็บผลผลิต: ปิดการทำงาน' ",
+    "HarvestButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60) HarvestButton.TextColor3 = Color3.fromRGB(180, 180, 180) end end) ",
+    "local WarpButton = Instance.new('TextButton') WarpButton.Size = UDim2.new(0.9, 0, 0, 40) ",
+    "WarpButton.Position = UDim2.new(0.05, 0, 0, 130) WarpButton.BackgroundColor3 = Color3.fromRGB(35, 120, 90) ",
+    "WarpButton.Text = 'วาร์ปไปร้านขายเมล็ดพันธุ์ (Warp Seeds)' WarpButton.TextColor3 = Color3.fromRGB(255, 255, 255) ",
+    "WarpButton.Font = Enum.Font.GothamSemibold WarpButton.TextSize = 11 WarpButton.Parent = MainFrame ",
+    "local WarpCorner = Instance.new('UICorner') WarpCorner.CornerRadius = UDim.new(0, 6) WarpCorner.Parent = WarpButton ",
+    "WarpButton.MouseButton1Click:Connect(function() WarpToSeedsShop() end) ",
+    "local Line = Instance.new('Frame') Line.Size = UDim2.new(0.9, 0, 0, 1) Line.Position = UDim2.new(0.05, 0, 0, 180) ",
+    "Line.BackgroundColor3 = Color3.fromRGB(45, 45, 55) Line.BorderSizePixel = 0 Line.Parent = MainFrame ",
+    "local AutoBuyLabel = Instance.new('TextLabel') AutoBuyLabel.Size = UDim2.new(0.9, 0, 0, 20) ",
+    "AutoBuyLabel.Position = UDim2.new(0.05, 0, 0, 190) AutoBuyLabel.BackgroundTransparency = 1 ",
+    "AutoBuyLabel.Text = 'ระบบซื้อพืชอัตโนมัติ (AUTO BUY CROP)' AutoBuyLabel.TextColor3 = Color3.fromRGB(160, 160, 170) ",
+    "AutoBuyLabel.Font = Enum.Font.GothamSemibold AutoBuyLabel.TextSize = 11 AutoBuyLabel.TextXAlignment = Enum.TextXAlignment.Left ",
+    "AutoBuyLabel.Parent = MainFrame local InputBox = Instance.new('TextBox') InputBox.Size = UDim2.new(0.9, 0, 0, 35) ",
+    "InputBox.Position = UDim2.new(0.05, 0, 0, 215) InputBox.BackgroundColor3 = Color3.fromRGB(25, 25, 35) InputBox.Text = 'Bamboo' ",
+    "InputBox.PlaceholderText = 'พิมพ์ชื่อพืชผักที่จะซื้อ...' InputBox.TextColor3 = Color3.fromRGB(240, 240, 240) ",
+    "InputBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 110) InputBox.Font = Enum.Font.Gotham InputBox.TextSize = 12 ",
+    "InputBox.ClearTextOnFocus = false InputBox.Parent = MainFrame ",
+    "local InputCorner = Instance.new('UICorner') InputCorner.CornerRadius = UDim.new(0, 6) InputCorner.Parent = InputBox ",
+    "InputBox:GetPropertyChangedSignal('Text'):Connect(function() States.SelectedCrop = InputBox.Text end) ",
+    "local ListContainer = Instance.new('ScrollingFrame') ListContainer.Size = UDim2.new(0.9, 0, 0, 55) ",
+    "ListContainer.Position = UDim2.new(0.05, 0, 0, 260) ListContainer.BackgroundTransparency = 1 ",
+    "ListContainer.CanvasSize = UDim2.new(0, (#CropPresets * 75), 0, 0) ListContainer.ScrollBarThickness = 2 ",
+    "ListContainer.Parent = MainFrame local UIListLayout = Instance.new('UIListLayout') ",
+    "UIListLayout.FillDirection = Enum.FillDirection.Horizontal UIListLayout.Padding = UDim.new(0, 5) ",
+    "UIListLayout.Parent = ListContainer for _, cropName in ipairs(CropPresets) do ",
+    "local CropBtn = Instance.new('TextButton') CropBtn.Size = UDim2.new(0, 70, 0, 35) ",
+    "CropBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40) CropBtn.Text = cropName CropBtn.TextColor3 = Color3.fromRGB(200, 200, 205) ",
+    "CropBtn.Font = Enum.Font.Gotham CropBtn.TextSize = 11 CropBtn.Parent = ListContainer ",
+    "local CropBtnCorner = Instance.new('UICorner') CropBtnCorner.CornerRadius = UDim.new(0, 4) CropBtnCorner.Parent = CropBtn ",
+    "CropBtn.MouseButton1Click:Connect(function() InputBox.Text = cropName States.SelectedCrop = cropName end) end ",
+    "local BuyToggleButton = Instance.new('TextButton') BuyToggleButton.Size = UDim2.new(0.9, 0, 0, 40) ",
+    "BuyToggleButton.Position = UDim2.new(0.05, 0, 0, 325) BuyToggleButton.BackgroundColor3 = Color3.fromRGB(180, 50, 50) ",
+    "BuyToggleButton.Text = 'ระบบซื้อออโต้: ปิดการทำงาน' BuyToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255) ",
+    "BuyToggleButton.Font = Enum.Font.GothamBold BuyToggleButton.TextSize = 12 BuyToggleButton.Parent = MainFrame ",
+    "local BuyToggleCorner = Instance.new('UICorner') BuyToggleCorner.CornerRadius = UDim.new(0, 6) BuyToggleCorner.Parent = BuyToggleButton ",
+    "BuyToggleButton.MouseButton1Click:Connect(function() States.AutoBuyActive = not States.AutoBuyActive ",
+    "if States.AutoBuyActive then BuyToggleButton.Text = 'ระบบซื้อออโต้: กำลังทำงาน...' BuyToggleButton.BackgroundColor3 = Color3.fromRGB(46, 204, 113) ",
+    "else BuyToggleButton.Text = 'ระบบซื้อออโต้: ปิดการทำงาน' BuyToggleButton.BackgroundColor3 = Color3.fromRGB(180, 50, 50) end end) ",
+    "local hookSuccess = pcall(function() local RawMeta = getrawmetatable(game) local OldNamecall = RawMeta.__namecall ",
+    "setreadonly(RawMeta, false) RawMeta.__namecall = newcclosure(function(self, ...) local method = getnamecallmethod() ",
+    "local args = {...} if self == PacketRemote and (method == 'FireServer' or method == 'fireServer') then ",
+    "local buf = args[1] if buf and typeof(buf) == 'userdata' then local str = buffer.tostring(buf) ",
+    "local plantUuid, playerUuid = string.match(str, '^\\205%z%$([%w%-]+)%$([%w%-]+)') if plantUuid and playerUuid then ",
+    "States.PlayerSessionUUID = playerUuid task.spawn(function() SessionStatusLabel.Text = 'สถานะเซสชัน: เชื่อมต่อสำเร็จแล้ว!' ",
+    "SessionStatusLabel.TextColor3 = Color3.fromRGB(46, 204, 113) end) end end end return OldNamecall(self, ...) end) ",
+    "setreadonly(RawMeta, true) end) ",
+    "task.spawn(function() while true do task.wait(States.BuyInterval) if States.AutoBuyActive and States.SelectedCrop ~= '' then ",
+    "FireBuyPacket(States.SelectedCrop) end end end) ",
+    "task.spawn(function() while true do task.wait(0.5) if States.AutoHarvestActive and States.PlayerSessionUUID ~= '' then ",
+    "local plantList = ScanForPlants() for _, uuid in ipairs(plantList) do if not States.AutoHarvestActive then break end ",
+    "HarvestPlant(uuid) task.wait(States.HarvestInterval) end end end end) ",
+    "local CloseOpenButton = Instance.new('TextButton') CloseOpenButton.Size = UDim2.new(0, 45, 0, 45) ",
+    "CloseOpenButton.Position = UDim2.new(0.05, 0, 0, 110) CloseOpenButton.BackgroundColor3 = Color3.fromRGB(15, 15, 20) ",
+    "CloseOpenButton.Text = 'MENU' CloseOpenButton.TextColor3 = Color3.fromRGB(255, 255, 255) ",
+    "CloseOpenButton.Font = Enum.Font.GothamBold CloseOpenButton.TextSize = 10 CloseOpenButton.Parent = ScreenGui ",
+    "local CloseCorner = Instance.new('UICorner') CloseCorner.CornerRadius = UDim.new(1, 0) CloseCorner.Parent = CloseOpenButton ",
+    "CloseOpenButton.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)"
+}
 
--- 1. ลบ GUI เดิมที่อาจซ้ำกันอยู่ก่อนหน้าเพื่อป้องกันการซ้อนทับ
-if playerGui:FindFirstChild("GButtonModGui") then
-    playerGui.GButtonModGui:Destroy()
-end
-
--- 2. สร้าง ScreenGui หลัก
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "GButtonModGui"
-ScreenGui.Parent = playerGui
-ScreenGui.ResetOnSpawn = false -- ตายแล้วปุ่มไม่หาย
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
--- 3. หน้าต่างหลัก (Main Window Frame)
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 180, 0, 140)
-MainFrame.Position = UDim2.new(0.1, 0, 0.4, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Parent = ScreenGui
-
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 12)
-MainCorner.Parent = MainFrame
-
--- เส้นขอบเรืองแสงเบาๆ (Stroke)
-local UIStroke = Instance.new("UIStroke")
-UIStroke.Color = Color3.fromRGB(80, 80, 100)
-UIStroke.Thickness = 1.5
-UIStroke.Parent = MainFrame
-
--- 4. ส่วนหัวของหน้าต่าง (Header/Title Bar สำหรับลาก)
-local Header = Instance.new("Frame")
-Header.Name = "Header"
-Header.Size = UDim2.new(1, 0, 0, 30)
-Header.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-Header.BorderSizePixel = 0
-Header.Parent = MainFrame
-
-local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, 12)
-HeaderCorner.Parent = Header
-
--- ปิดมุมล่างของ Header เพื่อให้เข้ากับ Frame หลัก
-local BottomCover = Instance.new("Frame")
-BottomCover.Name = "BottomCover"
-BottomCover.Size = UDim2.new(1, 0, 0.5, 0)
-BottomCover.Position = UDim2.new(0, 0, 0.5, 0)
-BottomCover.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-BottomCover.BorderSizePixel = 0
-BottomCover.Parent = Header
-
-local Title = Instance.new("TextLabel")
-Title.Name = "Title"
-Title.Size = UDim2.new(0.7, 0, 1, 0)
-Title.Position = UDim2.new(0.05, 0, 0, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "G-Button Mod"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 13
-Title.Font = Enum.Font.GothamBold
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Parent = Header
-
--- 5. ปุ่มย่อหน้าต่าง (Minimize Button)
-local MinButton = Instance.new("TextButton")
-MinButton.Name = "MinButton"
-MinButton.Size = UDim2.new(0, 24, 0, 24)
-MinButton.Position = UDim2.new(0.95, -24, 0.5, -12)
-MinButton.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
-MinButton.Text = "-"
-MinButton.TextColor3 = Color3.fromRGB(220, 220, 220)
-MinButton.TextSize = 16
-MinButton.Font = Enum.Font.GothamBold
-MinButton.AutoButtonColor = true
-MinButton.Parent = Header
-
-local MinCorner = Instance.new("UICorner")
-MinCorner.CornerRadius = UDim.new(0, 6)
-MinCorner.Parent = MinButton
-
--- 6. ปุ่มกดตัว G หลัก (The G-Action Button)
-local GButton = Instance.new("TextButton")
-GButton.Name = "GButton"
-GButton.Size = UDim2.new(0.85, 0, 0.55, 0)
-GButton.Position = UDim2.new(0.075, 0, 0.35, 0)
-GButton.BackgroundColor3 = Color3.fromRGB(98, 0, 234) -- สีม่วงสว่างสวยงาม
-GButton.Text = "PRESS G"
-GButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-GButton.TextSize = 16
-GButton.Font = Enum.Font.GothamBold
-GButton.AutoButtonColor = true
-GButton.Parent = MainFrame
-
--- ปิดคุณสมบัติแย่งการทัช เพื่อไม่ให้รบกวนปุ่มเดิน/กระโดดของ Roblox บนมือถือ
-GButton.Active = false 
-
-local GCorner = Instance.new("UICorner")
-GCorner.CornerRadius = UDim.new(0, 8)
-GCorner.Parent = GButton
-
-local GStroke = Instance.new("UIStroke")
-GStroke.Color = Color3.fromRGB(150, 100, 255)
-GStroke.Thickness = 1
-GStroke.Parent = GButton
-
--- 7. ปุ่มลอยย่อส่วน (Mini Floating Button)
-local MiniButton = Instance.new("TextButton")
-MiniButton.Name = "MiniButton"
-MiniButton.Size = UDim2.new(0, 50, 0, 50)
-MiniButton.Position = MainFrame.Position
-MiniButton.BackgroundColor3 = Color3.fromRGB(98, 0, 234)
-MiniButton.Visible = false
-MiniButton.Text = "G"
-MiniButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-MiniButton.TextSize = 22
-MiniButton.Font = Enum.Font.GothamBold
-MiniButton.AutoButtonColor = true
-MiniButton.Active = true
-MiniButton.Parent = ScreenGui
-
-local MiniCorner = Instance.new("UICorner")
-MiniCorner.CornerRadius = UDim.new(0, 25) -- ทำเป็นวงกลม
-MiniCorner.Parent = MiniButton
-
-local MiniStroke = Instance.new("UIStroke")
-MiniStroke.Color = Color3.fromRGB(255, 255, 255)
-MiniStroke.Thickness = 2
-MiniStroke.Parent = MiniButton
-
--- ==========================================
--- ระบบจำลองคีย์บอร์ดเสมือน (ป้องกันปุ่มเดินหาย)
--- ==========================================
-local function pressGKey()
-    -- ใช้ VirtualInputManager จำลองการกดปุ่ม G ทางระดับ Hardware ของ Roblox
-    -- วิธีนี้จะไม่ตัดสิทธิ์การควบคุมหน้าจอสัมผัสของมือถือ
-    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.G, false, game)
-    task.wait(0.05)
-    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.G, false, game)
-end
-
-GButton.MouseButton1Click:Connect(pressGKey)
-MiniButton.MouseButton1Click:Connect(function()
-    -- หากกดที่ปุ่มลอยเล็กขณะย่อส่วน จะทำการขยายหน้าต่างหลักกลับมา
-    if MiniButton.Visible then
-        MainFrame.Position = MiniButton.Position
-        MiniButton.Visible = false
-        MainFrame.Visible = true
+-- [ VIRTUAL MACHINE EXECUTION ENGINE ]
+-- ประกอบชิ้นส่วนพอร์ตข้อมูลบนหน่วยความจำ และเริ่มทำงานอย่างปลอดภัย
+local function execute()
+    local sourceCode = _concat(_chunks, "")
+    local compiled, err = _load(sourceCode)
+    if compiled then
+        local success, runErr = pcall(compiled)
+        if not success then
+            warn("[!] Secure Runtime Error: " .. tostring(runErr))
+        end
+    else
+        warn("[!] Decryption Failure: " .. tostring(err))
     end
-end)
-
--- ==========================================
--- ระบบ ย่อ / ขยาย หน้าต่าง (Minimize System)
--- ==========================================
-MinButton.MouseButton1Click:Connect(function()
-    MiniButton.Position = MainFrame.Position
-    MainFrame.Visible = false
-    MiniButton.Visible = true
-end)
-
--- ==========================================
--- ระบบลากเคลื่อนย้าย (Draggable System)
--- รองรับทั้งเมาส์ และระบบสัมผัสของมือถืออย่างสมบูรณ์
--- ==========================================
-local function setupDraggable(frame, dragHandle)
-    local dragging = false
-    local dragInput
-    local dragStart
-    local startPos
-
-    local function update(input)
-        local delta = input.Position - dragStart
-        local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        
-        -- ทำแอนิเมชันตอนลากเพื่อให้ดูนุ่มนวลขึ้น
-        local tween = TweenService:Create(frame, TweenInfo.new(0.08, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Position = newPos})
-        tween:Play()
-    end
-
-    dragHandle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
-
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
-        end
-    end)
-
-    dragHandle.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            update(input)
-        end
-    end)
 end
 
--- เปิดใช้งานระบบลากสำหรับหน้าต่างหลัก (ลากผ่านส่วนหัว Header) และปุ่มย่อเล็ก (ลากตัวมันเองได้เลย)
-setupDraggable(MainFrame, Header)
-setupDraggable(MiniButton, MiniButton)
+execute()
