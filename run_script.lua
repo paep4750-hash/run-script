@@ -1,171 +1,548 @@
 --[[
     ====================================================================
-    [!] OBFUSCATED BY LUA COMPILER v8.4 (VM-BASED SECURE CRYPTO)
-    [!] TARGET: GO A GARDEN 2 - ULTIMATE UTILITY (FE COMPATIBLE)
-    [!] STATUS: SECURED (ANTI-DECOMPILE / ANTI-DECODE)
-    ====================================================================
-    WARNING: DO NOT EDIT ANY CHARACTER BELOW. THIS IS COMPILED BYTECODE.
-    ANY MODIFICATION WILL CORRUPT THE DECRYPTION ALGORITHM.
+    [!] PREMIUM FOXNAME HUB - ANIMAL HOSPITAL EDITION
+    [!] DESIGN: Dark Navy Glassmorphism (Glassmorphic Glow, Smooth Tweens)
+    [!] FEATURES: Infinite Stamina, Auto Interact/Treat, WalkSpeed & JumpPower
     ====================================================================
 --]]
 
-local _g = LPH_NO_VIRTUALIZE or function(...) return ... end
-local _d = string.char
-local _b = string.byte
-local _s = string.sub
-local _t = table.concat
-local _i = table.insert
-local _l = loadstring or load
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
 
--- [ SECURE STATIC CRYPTOMAP ]
-local _encTable = {
-    "local Players = game:GetService('Players') local ReplicatedStorage = game:GetService('ReplicatedStorage') ",
-    "local RunService = game:GetService('RunService') local LocalPlayer = Players.LocalPlayer ",
-    "local PacketRemote = ReplicatedStorage:WaitForChild('SharedModules'):WaitForChild('Packet'):WaitForChild('RemoteEvent') ",
-    "local States = {AutoBuyActive = false, SelectedCrop = 'Bamboo', BuyInterval = 0.2, AutoHarvestActive = false, PlayerSessionUUID = '', HarvestInterval = 0.1} ",
-    "local CropPresets = {'Bamboo', 'Tomato', 'Carrot', 'Pumpkin', 'Cabbage', 'Potato', 'Corn', 'Watermelon', 'Strawberry'} ",
-    "local function ScanForPlants() local uuids = {} for _, obj in ipairs(workspace:GetDescendants()) do ",
-    "if obj:IsA('Model') or obj:IsA('Folder') or obj:IsA('BasePart') then local name = obj.Name ",
-    "if string.match(name, '^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$') then ",
-    "table.insert(uuids, name) end end end return uuids end ",
-    "local function HarvestPlant(plantUuid) if not States.PlayerSessionUUID or States.PlayerSessionUUID == '' then return end ",
-    "pcall(function() local packetStr = '\\205\\000$' .. plantUuid .. '$' .. States.PlayerSessionUUID ",
-    "PacketRemote:FireServer(buffer.fromstring(packetStr)) end) end ",
-    "local function FireBuyPacket(itemName) local len = #itemName local lenMSB = math.floor(len / 256) local lenLSB = len % 256 ",
-    "local packetString = '{' .. string.char(lenMSB, lenLSB) .. itemName pcall(function() ",
-    "PacketRemote:FireServer(buffer.fromstring(packetString)) end) end ",
-    "local function WarpToSeedsShop() pcall(function() ",
-    "PacketRemote:FireServer(buffer.fromstring('\\006\\000\\005SeedsV\\000\\133\\215\\132C\\197\\000\\018C\\228Y\\015\\195?\\001')) end) end ",
-    "local function BuySprinklerFromServer(sprName) local len = #sprName local lenMSB = math.floor(len / 256) local lenLSB = len % 256 ",
-    "local packetString = '{' .. string.char(lenMSB, lenLSB) .. sprName pcall(function() ",
-    "PacketRemote:FireServer(buffer.fromstring(packetString)) end) end ",
-    "local ScreenGui = Instance.new('ScreenGui') ScreenGui.Name = 'Helper_' .. tostring(math.random(100, 999)) ",
-    "ScreenGui.ResetOnSpawn = false ScreenGui.Parent = game:GetService('CoreGui') or LocalPlayer:WaitForChild('PlayerGui') ",
-    "local MainFrame = Instance.new('Frame') MainFrame.Name = 'MainFrame' MainFrame.Size = UDim2.new(0, 320, 0, 520) ",
-    "MainFrame.Position = UDim2.new(0.5, -160, 0.4, -260) MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20) ",
-    "MainFrame.BorderSizePixel = 0 MainFrame.Active = true MainFrame.Draggable = true MainFrame.Parent = ScreenGui ",
-    "local FrameCorner = Instance.new('UICorner') FrameCorner.CornerRadius = UDim.new(0, 10) FrameCorner.Parent = MainFrame ",
-    "local Title = Instance.new('TextLabel') Title.Size = UDim2.new(1, 0, 0, 45) Title.BackgroundTransparency = 1 ",
-    "Title.Text = '  GO A GARDEN 2 - ULTIMATE V3' Title.TextColor3 = Color3.fromRGB(240, 240, 245) Title.Font = Enum.Font.GothamBold ",
-    "Title.TextSize = 13 Title.TextXAlignment = Enum.TextXAlignment.Left Title.Parent = MainFrame ",
-    "local SessionStatusLabel = Instance.new('TextLabel') SessionStatusLabel.Size = UDim2.new(0.9, 0, 0, 25) ",
-    "SessionStatusLabel.Position = UDim2.new(0.05, 0, 0, 45) SessionStatusLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 30) ",
-    "SessionStatusLabel.Text = 'สถานะเซสชัน: รอเก็บผลไม้เอง 1 ครั้ง...' SessionStatusLabel.TextColor3 = Color3.fromRGB(235, 150, 50) ",
-    "SessionStatusLabel.Font = Enum.Font.GothamSemibold SessionStatusLabel.TextSize = 10 SessionStatusLabel.Parent = MainFrame ",
-    "local StatusCorner = Instance.new('UICorner') StatusCorner.CornerRadius = UDim.new(0, 4) StatusCorner.Parent = SessionStatusLabel ",
-    "local SprinklerLabel = Instance.new('TextLabel') SprinklerLabel.Size = UDim2.new(0.9, 0, 0, 20) SprinklerLabel.Position = UDim2.new(0.05, 0, 0, 80) ",
-    "SprinklerLabel.BackgroundTransparency = 1 SprinklerLabel.Text = 'ระบบดึงสปริงเกอร์ผ่านเซิร์ฟเวอร์ (FE - USABLE)' SprinklerLabel.TextColor3 = Color3.fromRGB(46, 204, 113) ",
-    "SprinklerLabel.Font = Enum.Font.GothamBold SprinklerLabel.TextSize = 10 SprinklerLabel.TextXAlignment = Enum.TextXAlignment.Left SprinklerLabel.Parent = MainFrame ",
-    "local SpawnCommonBtn = Instance.new('TextButton') SpawnCommonBtn.Size = UDim2.new(0.42, 0, 0, 35) SpawnCommonBtn.Position = UDim2.new(0.05, 0, 0, 105) ",
-    "SpawnCommonBtn.BackgroundColor3 = Color3.fromRGB(30, 40, 60) SpawnCommonBtn.Text = 'เสก Common' SpawnCommonBtn.TextColor3 = Color3.fromRGB(240, 240, 255) ",
-    "SpawnCommonBtn.Font = Enum.Font.GothamBold SpawnCommonBtn.TextSize = 11 SpawnCommonBtn.Parent = MainFrame ",
-    "local CommonCorner = Instance.new('UICorner') CommonCorner.CornerRadius = UDim.new(0, 6) CommonCorner.Parent = SpawnCommonBtn ",
-    "SpawnCommonBtn.MouseButton1Click:Connect(function() SpawnCommonBtn.Text = 'กำลังส่งคำสั่ง...' BuySprinklerFromServer('Common Sprinkler') ",
-    "SpawnCommonBtn.Text = 'ส่งคำสั่งสำเร็จ!' SpawnCommonBtn.BackgroundColor3 = Color3.fromRGB(46, 204, 113) task.wait(1.5) ",
-    "SpawnCommonBtn.Text = 'เสก Common' SpawnCommonBtn.BackgroundColor3 = Color3.fromRGB(30, 40, 60) end) ",
-    "local SpawnSuperBtn = Instance.new('TextButton') SpawnSuperBtn.Size = UDim2.new(0.42, 0, 0, 35) SpawnSuperBtn.Position = UDim2.new(0.53, 0, 0, 105) ",
-    "SpawnSuperBtn.BackgroundColor3 = Color3.fromRGB(50, 30, 80) SpawnSuperBtn.Text = 'เสก Super' SpawnSuperBtn.TextColor3 = Color3.fromRGB(240, 240, 255) ",
-    "SpawnSuperBtn.Font = Enum.Font.GothamBold SpawnSuperBtn.TextSize = 11 SpawnSuperBtn.Parent = MainFrame ",
-    "local SuperCorner = Instance.new('UICorner') SuperCorner.CornerRadius = UDim.new(0, 6) SuperCorner.Parent = SpawnSuperBtn ",
-    "SpawnSuperBtn.MouseButton1Click:Connect(function() SpawnSuperBtn.Text = 'กำลังส่งคำสั่ง...' BuySprinklerFromServer('Super Sprinkler') BuySprinklerFromServer('Super Springer') ",
-    "SpawnSuperBtn.Text = 'ส่งคำสั่งสำเร็จ!' SpawnSuperBtn.BackgroundColor3 = Color3.fromRGB(46, 204, 113) task.wait(1.5) ",
-    "SpawnSuperBtn.Text = 'เสก Super' SpawnSuperBtn.BackgroundColor3 = Color3.fromRGB(50, 30, 80) end) ",
-    "local ControlLabel = Instance.new('TextLabel') ControlLabel.Size = UDim2.new(0.9, 0, 0, 20) ControlLabel.Position = UDim2.new(0.05, 0, 0, 150) ",
-    "ControlLabel.BackgroundTransparency = 1 ControlLabel.Text = 'ระบบช่วยฟาร์มทั่วไป (GENERAL FARM)' ControlLabel.TextColor3 = Color3.fromRGB(160, 160, 170) ",
-    "ControlLabel.Font = Enum.Font.GothamSemibold ControlLabel.TextSize = 10 ControlLabel.TextXAlignment = Enum.TextXAlignment.Left ControlLabel.Parent = MainFrame ",
-    "local HarvestButton = Instance.new('TextButton') HarvestButton.Size = UDim2.new(0.9, 0, 0, 35) HarvestButton.Position = UDim2.new(0.05, 0, 0, 175) ",
-    "HarvestButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60) HarvestButton.Text = 'ออโต้เก็บผลผลิต: ปิด' HarvestButton.TextColor3 = Color3.fromRGB(180, 180, 180) ",
-    "HarvestButton.Font = Enum.Font.GothamBold HarvestButton.TextSize = 11 HarvestButton.Parent = MainFrame ",
-    "local HarvestCorner = Instance.new('UICorner') HarvestCorner.CornerRadius = UDim.new(0, 6) HarvestCorner.Parent = HarvestButton ",
-    "HarvestButton.MouseButton1Click:Connect(function() if States.PlayerSessionUUID == '' then ",
-    "SessionStatusLabel.Text = 'กรุณาเก็บผลไม้เอง 1 ครั้งก่อน!' SessionStatusLabel.TextColor3 = Color3.fromRGB(235, 80, 80) task.wait(2) ",
-    "SessionStatusLabel.Text = 'สถานะเซสชัน: รอเก็บผลไม้เอง 1 ครั้ง...' SessionStatusLabel.TextColor3 = Color3.fromRGB(235, 150, 50) return end ",
-    "States.AutoHarvestActive = not States.AutoHarvestActive if States.AutoHarvestActive then HarvestButton.Text = 'ออโต้เก็บผลผลิต: เปิด' ",
-    "HarvestButton.BackgroundColor3 = Color3.fromRGB(46, 204, 113) HarvestButton.TextColor3 = Color3.fromRGB(255, 255, 255) ",
-    "else HarvestButton.Text = 'ออโต้เก็บผลผลิต: ปิด' HarvestButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60) ",
-    "HarvestButton.TextColor3 = Color3.fromRGB(180, 180, 180) end end) ",
-    "local WarpButton = Instance.new('TextButton') WarpButton.Size = UDim2.new(0.9, 0, 0, 35) WarpButton.Position = UDim2.new(0.05, 0, 0, 220) ",
-    "WarpButton.BackgroundColor3 = Color3.fromRGB(35, 120, 90) WarpButton.Text = 'วาร์ปไปร้านเมล็ดพันธุ์ (Warp Seeds)' ",
-    "WarpButton.TextColor3 = Color3.fromRGB(255, 255, 255) WarpButton.Font = Enum.Font.GothamSemibold WarpButton.TextSize = 11 WarpButton.Parent = MainFrame ",
-    "local WarpCorner = Instance.new('UICorner') WarpCorner.CornerRadius = UDim.new(0, 6) WarpCorner.Parent = WarpButton ",
-    "WarpButton.MouseButton1Click:Connect(function() WarpToSeedsShop() end) ",
-    "local Line = Instance.new('Frame') Line.Size = UDim2.new(0.9, 0, 0, 1) Line.Position = UDim2.new(0.05, 0, 0, 270) ",
-    "Line.BackgroundColor3 = Color3.fromRGB(45, 45, 55) Line.BorderSizePixel = 0 Line.Parent = MainFrame ",
-    "local AutoBuyLabel = Instance.new('TextLabel') AutoBuyLabel.Size = UDim2.new(0.9, 0, 0, 20) AutoBuyLabel.Position = UDim2.new(0.05, 0, 0, 280) ",
-    "AutoBuyLabel.BackgroundTransparency = 1 AutoBuyLabel.Text = 'ระบบซื้อพืชอัตโนมัติ (AUTO BUY CROP)' AutoBuyLabel.TextColor3 = Color3.fromRGB(160, 160, 170) ",
-    "AutoBuyLabel.Font = Enum.Font.GothamSemibold AutoBuyLabel.TextSize = 10 AutoBuyLabel.TextXAlignment = Enum.TextXAlignment.Left AutoBuyLabel.Parent = MainFrame ",
-    "local InputBox = Instance.new('TextBox') InputBox.Size = UDim2.new(0.9, 0, 0, 35) InputBox.Position = UDim2.new(0.05, 0, 0, 305) ",
-    "InputBox.BackgroundColor3 = Color3.fromRGB(25, 25, 35) InputBox.Text = 'Bamboo' InputBox.PlaceholderText = 'พิมพ์ชื่อพืชผักที่จะซื้อ...' ",
-    "InputBox.TextColor3 = Color3.fromRGB(240, 240, 240) InputBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 110) InputBox.Font = Enum.Font.Gotham ",
-    "InputBox.TextSize = 11 InputBox.ClearTextOnFocus = false InputBox.Parent = MainFrame ",
-    "local InputCorner = Instance.new('UICorner') InputCorner.CornerRadius = UDim.new(0, 6) InputCorner.Parent = InputBox ",
-    "InputBox:GetPropertyChangedSignal('Text'):Connect(function() States.SelectedCrop = InputBox.Text end) ",
-    "local ListContainer = Instance.new('ScrollingFrame') ListContainer.Size = UDim2.new(0.9, 0, 0, 55) ListContainer.Position = UDim2.new(0.05, 0, 0, 350) ",
-    "ListContainer.BackgroundTransparency = 1 ListContainer.CanvasSize = UDim2.new(0, (#CropPresets * 75), 0, 0) ListContainer.ScrollBarThickness = 2 ",
-    "ListContainer.Parent = MainFrame local UIListLayout = Instance.new('UIListLayout') UIListLayout.FillDirection = Enum.FillDirection.Horizontal ",
-    "UIListLayout.Padding = UDim.new(0, 5) UIListLayout.Parent = ListContainer ",
-    "for _, cropName in ipairs(CropPresets) do local CropBtn = Instance.new('TextButton') CropBtn.Size = UDim2.new(0, 70, 0, 35) ",
-    "CropBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40) CropBtn.Text = cropName CropBtn.TextColor3 = Color3.fromRGB(200, 200, 205) ",
-    "CropBtn.Font = Enum.Font.Gotham CropBtn.TextSize = 11 CropBtn.Parent = ListContainer ",
-    "local CropBtnCorner = Instance.new('UICorner') CropBtnCorner.CornerRadius = UDim.new(0, 4) CropBtnCorner.Parent = CropBtn ",
-    "CropBtn.MouseButton1Click:Connect(function() InputBox.Text = cropName States.SelectedCrop = cropName end) end ",
-    "local BuyToggleButton = Instance.new('TextButton') BuyToggleButton.Size = UDim2.new(0.9, 0, 0, 40) BuyToggleButton.Position = UDim2.new(0.05, 0, 0, 415) ",
-    "BuyToggleButton.BackgroundColor3 = Color3.fromRGB(180, 50, 50) BuyToggleButton.Text = 'ระบบซื้อออโต้: ปิด' BuyToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255) ",
-    "BuyToggleButton.Font = Enum.Font.GothamBold BuyToggleButton.TextSize = 12 BuyToggleButton.Parent = MainFrame ",
-    "local BuyToggleCorner = Instance.new('UICorner') BuyToggleCorner.CornerRadius = UDim.new(0, 6) BuyToggleCorner.Parent = BuyToggleButton ",
-    "BuyToggleButton.MouseButton1Click:Connect(function() States.AutoBuyActive = not States.AutoBuyActive ",
-    "if States.AutoBuyActive then BuyToggleButton.Text = 'ระบบซื้อออโต้: เปิด' BuyToggleButton.BackgroundColor3 = Color3.fromRGB(46, 204, 113) ",
-    "else BuyToggleButton.Text = 'ระบบซื้อออโต้: ปิด' BuyToggleButton.BackgroundColor3 = Color3.fromRGB(180, 50, 50) end end) ",
-    "local hookSuccess = pcall(function() local RawMeta = getrawmetatable(game) local OldNamecall = RawMeta.__namecall ",
-    "setreadonly(RawMeta, false) RawMeta.__namecall = newcclosure(function(self, ...) local method = getnamecallmethod() ",
-    "local args = {...} if self == PacketRemote and (method == 'FireServer' or method == 'fireServer') then ",
-    "local buf = args[1] if buf and typeof(buf) == 'userdata' then local str = buffer.tostring(buf) ",
-    "local plantUuid, playerUuid = string.match(str, '^\\205%z%$([%w%-]+)%$([%w%-]+)') if plantUuid and playerUuid then ",
-    "States.PlayerSessionUUID = playerUuid task.spawn(function() SessionStatusLabel.Text = 'สถานะเซสชัน: เชื่อมต่อสำเร็จ!' ",
-    "SessionStatusLabel.TextColor3 = Color3.fromRGB(46, 204, 113) end) end end end return OldNamecall(self, ...) end) ",
-    "setreadonly(RawMeta, true) end) ",
-    "task.spawn(function() while true do task.wait(States.BuyInterval) if States.AutoBuyActive and States.SelectedCrop ~= '' then ",
-    "FireBuyPacket(States.SelectedCrop) end end end) ",
-    "task.spawn(function() while true do task.wait(0.5) if States.AutoHarvestActive and States.PlayerSessionUUID ~= '' then ",
-    "local plantList = ScanForPlants() for _, uuid in ipairs(plantList) do if not States.AutoHarvestActive then break end ",
-    "HarvestPlant(uuid) task.wait(States.HarvestInterval) end end end end) ",
-    "local CloseOpenButton = Instance.new('TextButton') CloseOpenButton.Size = UDim2.new(0, 45, 0, 45) CloseOpenButton.Position = UDim2.new(0.05, 0, 0, 110) ",
-    "CloseOpenButton.BackgroundColor3 = Color3.fromRGB(15, 15, 20) CloseOpenButton.Text = 'MENU' CloseOpenButton.TextColor3 = Color3.fromRGB(255, 255, 255) ",
-    "CloseOpenButton.Font = Enum.Font.GothamBold CloseOpenButton.TextSize = 10 CloseOpenButton.Parent = ScreenGui ",
-    "local CloseCorner = Instance.new('UICorner') CloseCorner.CornerRadius = UDim.new(1, 0) CloseCorner.Parent = CloseOpenButton ",
-    "CloseOpenButton.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)"
+-- [ CONFIGURATION & STATE MANAGEMENT ]
+local States = {
+    CurrentTab = "User",
+    
+    -- LocalPlayer Settings
+    SpeedValue = 16,
+    JumpPowerValue = 50,
+    InfiniteStamina = false,
+    NoclipActive = false,
+    UnlockThirdPerson = false,
+    
+    -- Auto Farming
+    AutoTreatActive = false,
+    AutoTasksActive = false
 }
 
--- [ SECURITIZED COMPILER RUNTIME ]
--- การดึงชิ้นส่วนและแปลข้อมูลในแรมชั่วคราว เพื่อป้องกันการถอดโค้ดจากซอร์สไฟล์ต้นฉบับ
-local function _executeCompiled()
-    local _tempSource = {}
+-- ====================================================
+-- [ ฟังก์ชันระบบหลัก (Core Logic) ]
+-- ====================================================
+
+-- 1. ระบบ Infinite Stamina / Energy Bypass
+local function ApplyInfiniteStamina(enabled)
+    if not enabled then return end
     
-    -- ทำการสแกนและสลับตำแหน่งเพื่อประกอบ String จาก Dynamic Encrypted Array
-    for _idx = 1, #_encTable do
-        local _sourceBlock = _encTable[_idx]
-        local _decryptedBlock = {}
-        
-        -- ใช้ตัวแปรเวกเตอร์แบบสุ่มและ XOR-Cipher เพื่อกู้ไบต์ข้อมูล
-        for _charPos = 1, #_sourceBlock do
-            local _rawByte = _b(_s(_sourceBlock, _charPos, _charPos))
-            _i(_decryptedBlock, _d(_rawByte))
+    local Character = LocalPlayer.Character
+    if Character then
+        -- สแกนหาค่า Stamina หรือ Energy ในตัวละคร (Attributes)
+        for _, attribute in ipairs({"Stamina", "Energy", "SprintEnergy", "Sanity"}) do
+            if Character:GetAttribute(attribute) then
+                Character:SetAttribute(attribute, 999999)
+            end
         end
-        _i(_tempSource, _t(_decryptedBlock, ""))
+        
+        -- ค้นหาโฟลเดอร์หรือ Value Object ที่อาจจะเก็บค่าความเหนื่อยล้า
+        for _, val in ipairs(Character:GetDescendants()) do
+            if val:IsA("NumberValue") or val:IsA("IntValue") then
+                local name = val.Name:lower()
+                if name:find("stamina") or name:find("energy") or name:find("sprint") then
+                    val.Value = 100
+                end
+            end
+        end
     end
     
-    -- รวมและดึงเข้าหน่วยความจำชั่วคราวฝั่ง RAM เท่านั้น ป้องกันการแอบ Dump
-    local _fullSecuredCode = _t(_tempSource, "")
-    local _runtimeExecution, _err = _l(_fullSecuredCode)
-    
-    if _runtimeExecution then
-        local _status, _runErr = pcall(_runtimeExecution)
-        if not _status then
-            warn("[!] VM Execution Failure: " .. tostring(_runErr))
+    -- เจาะเข้าไปสแกนหาตัวแปร Stamina ใน ObjectivesLocal Script
+    pcall(function()
+        local objectivesScript = LocalPlayer.PlayerScripts.UI:FindFirstChild("ObjectivesLocal")
+        if objectivesScript and getgc then
+            for _, v in pairs(getgc(true)) do
+                if type(v) == "table" then
+                    if rawget(v, "Stamina") or rawget(v, "stamina") then
+                        v.Stamina = 100
+                        v.stamina = 100
+                    end
+                    if rawget(v, "Energy") or rawget(v, "energy") then
+                        v.Energy = 100
+                        v.energy = 100
+                    end
+                end
+            end
         end
-    else
-        warn("[!] Compilation Failure inside VM Sandbox: " .. tostring(_err))
+    end)
+end
+
+-- 2. ระบบ Auto-Treat (ออโต้รักษาคนไข้สัตว์อัตโนมัติ)
+local function AutoInteractWithAnimals()
+    if not States.AutoTreatActive then return end
+    
+    -- สแกนหา ProximityPrompt ทั่วทุก Workspace และทำการรันคำสั่งกดปุ่ม (Interact) ทันที
+    for _, prompt in ipairs(workspace:GetDescendants()) do
+        if prompt:IsA("ProximityPrompt") then
+            local parent = prompt.Parent
+            if parent and (parent.Name:lower():find("patient") or parent.Name:lower():find("animal") or parent.Name:lower():find("treat") or parent.Name:lower():find("pet")) then
+                -- สั่งเปิดใช้งานปุ่มกดอัตโนมัติในทันที
+                task.spawn(function()
+                    fireproximityprompt(prompt)
+                end)
+            end
+        end
     end
 end
 
-_g(_executeCompiled)()
+-- ====================================================
+-- [ การสร้าง UI ระดับพรีเมียม (Glassmorphism Navy) ]
+-- ====================================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "FoxnameAnimalHospital_" .. tostring(math.random(1000, 9999))
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
+
+-- เฟรมหลัก (Main Frame)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 660, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -330, 0.5, -200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 17, 26) -- โทนน้ำเงินเข้มหรูหราตามแบบ
+MainFrame.BackgroundTransparency = 0.15
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
+
+-- เส้นขอบเรืองแสงบางๆ รอบเมนูหลัก (UIStroke)
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Thickness = 1
+MainStroke.Color = Color3.fromRGB(45, 52, 75)
+MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+MainStroke.Parent = MainFrame
+
+-- แถบเมนูด้านซ้าย (Sidebar)
+local Sidebar = Instance.new("Frame")
+Sidebar.Name = "Sidebar"
+Sidebar.Size = UDim2.new(0, 180, 1, 0)
+Sidebar.BackgroundColor3 = Color3.fromRGB(10, 12, 18)
+Sidebar.BackgroundTransparency = 0.2
+Sidebar.BorderSizePixel = 0
+Sidebar.Parent = MainFrame
+
+local SidebarCorner = Instance.new("UICorner")
+SidebarCorner.CornerRadius = UDim.new(0, 12)
+SidebarCorner.Parent = Sidebar
+
+-- ปิดมุมโค้งขวาของ Sidebar เพื่อให้เชื่อมต่อกับหน้าต่างหลัก
+local CoverFrame = Instance.new("Frame")
+CoverFrame.Size = UDim2.new(0, 15, 1, 0)
+CoverFrame.Position = UDim2.new(1, -15, 0, 0)
+CoverFrame.BackgroundColor3 = Color3.fromRGB(10, 12, 18)
+CoverFrame.BackgroundTransparency = 0.2
+CoverFrame.BorderSizePixel = 0
+CoverFrame.Parent = Sidebar
+
+-- โลโก้แบรนด์ Foxname Hub
+local LogoLabel = Instance.new("TextLabel")
+LogoLabel.Size = UDim2.new(1, 0, 0, 45)
+LogoLabel.BackgroundTransparency = 1
+LogoLabel.Text = "  Foxname Hub"
+LogoLabel.TextColor3 = Color3.fromRGB(245, 245, 250)
+LogoLabel.Font = Enum.Font.GothamBold
+LogoLabel.TextSize = 13
+LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
+LogoLabel.Parent = Sidebar
+
+local LogoSub = Instance.new("TextLabel")
+LogoSub.Size = UDim2.new(1, 0, 0, 15)
+LogoSub.Position = UDim2.new(0, 10, 0, 32)
+LogoSub.BackgroundTransparency = 1
+LogoSub.Text = "Animal Hospital"
+LogoSub.TextColor3 = Color3.fromRGB(110, 115, 135)
+LogoSub.Font = Enum.Font.GothamSemibold
+LogoSub.TextSize = 9
+LogoSub.TextXAlignment = Enum.TextXAlignment.Left
+LogoSub.Parent = Sidebar
+
+-- คอนเทนเนอร์ปุ่มเลือก Tab (เลื่อนได้)
+local TabContainer = Instance.new("ScrollingFrame")
+TabContainer.Size = UDim2.new(1, -10, 1, -75)
+TabContainer.Position = UDim2.new(0, 5, 0, 65)
+TabContainer.BackgroundTransparency = 1
+TabContainer.CanvasSize = UDim2.new(0, 0, 0, 300)
+TabContainer.ScrollBarThickness = 0
+TabContainer.Parent = Sidebar
+
+local TabListLayout = Instance.new("UIListLayout")
+TabListLayout.Padding = UDim.new(0, 5)
+TabListLayout.Parent = TabContainer
+
+-- พื้นที่แสดงเนื้อหาด้านขวา
+local ContentArea = Instance.new("Frame")
+ContentArea.Name = "ContentArea"
+ContentArea.Size = UDim2.new(1, -195, 1, -20)
+ContentArea.Position = UDim2.new(0, 185, 0, 10)
+ContentArea.BackgroundTransparency = 1
+ContentArea.Parent = MainFrame
+
+-- ตารางเก็บแต่ละหน้า
+local Pages = {}
+
+local function CreatePage(name)
+    local Page = Instance.new("ScrollingFrame")
+    Page.Name = name .. "Page"
+    Page.Size = UDim2.new(1, 0, 1, 0)
+    Page.BackgroundTransparency = 1
+    Page.CanvasSize = UDim2.new(0, 0, 0, 450)
+    Page.ScrollBarThickness = 2
+    Page.ScrollBarImageColor3 = Color3.fromRGB(45, 52, 75)
+    Page.Visible = false
+    Page.Parent = ContentArea
+    
+    local PageLayout = Instance.new("UIListLayout")
+    PageLayout.Padding = UDim.new(0, 12)
+    PageLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    PageLayout.Parent = Page
+    
+    Pages[name] = Page
+    return Page
+end
+
+local PageAuto = CreatePage("Auto")
+local PageUser = CreatePage("User")
+local PageCredit = CreatePage("Credit")
+
+-- ====================================================
+-- [ ระบบสลับ Tab อนิมิชัน ]
+-- ====================================================
+local CurrentActiveBtn = nil
+
+local function SwitchTab(tabName, button)
+    for name, page in pairs(Pages) do
+        page.Visible = (name == tabName)
+    end
+    
+    if CurrentActiveBtn then
+        TweenService:Create(CurrentActiveBtn, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(15, 17, 26),
+            TextColor3 = Color3.fromRGB(130, 135, 150)
+        }):Play()
+    end
+    
+    CurrentActiveBtn = button
+    TweenService:Create(button, TweenInfo.new(0.2), {
+        BackgroundColor3 = Color3.fromRGB(28, 32, 48),
+        TextColor3 = Color3.fromRGB(255, 255, 255)
+    }):Play()
+    
+    States.CurrentTab = tabName
+end
+
+local function AddTabButton(label, tabName, emoji)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(0.95, 0, 0, 36)
+    Btn.BackgroundColor3 = Color3.fromRGB(15, 17, 26)
+    Btn.Text = "  " .. emoji .. "   " .. label
+    Btn.TextColor3 = Color3.fromRGB(130, 135, 150)
+    Btn.Font = Enum.Font.GothamSemibold
+    Btn.TextSize = 10
+    Btn.TextXAlignment = Enum.TextXAlignment.Left
+    Btn.AutoButtonColor = false
+    Btn.Parent = TabContainer
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 6)
+    Corner.Parent = Btn
+    
+    Btn.MouseButton1Click:Connect(function()
+        SwitchTab(tabName, Btn)
+    end)
+    return Btn
+end
+
+-- สร้างปุ่มเมนูตามแบบในภาพ
+local DefaultBtn = AddTabButton("Local Player", "User", "👤")
+AddTabButton("Auto Hospital", "Auto", "🏥")
+AddTabButton("About & Info", "Credit", "ℹ️")
+
+SwitchTab("User", DefaultBtn)
+
+-- ====================================================
+-- [ UI Components Creation (Foxname-Style Elements) ]
+-- ====================================================
+
+-- ส่วนที่ 1: กล่อง Section
+local function CreateSection(parent, titleText)
+    local SectionFrame = Instance.new("Frame")
+    SectionFrame.Size = UDim2.new(0.95, 0, 0, 40)
+    SectionFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
+    SectionFrame.BackgroundTransparency = 0.2
+    SectionFrame.BorderSizePixel = 0
+    SectionFrame.Parent = parent
+    
+    local SectionCorner = Instance.new("UICorner")
+    SectionCorner.CornerRadius = UDim.new(0, 8)
+    SectionCorner.Parent = SectionFrame
+    
+    local SectionStroke = Instance.new("UIStroke")
+    SectionStroke.Thickness = 1
+    SectionStroke.Color = Color3.fromRGB(35, 40, 58)
+    SectionStroke.Parent = SectionFrame
+    
+    local HeaderLabel = Instance.new("TextLabel")
+    HeaderLabel.Size = UDim2.new(1, -20, 0, 32)
+    HeaderLabel.Position = UDim2.new(0, 12, 0, 0)
+    HeaderLabel.BackgroundTransparency = 1
+    HeaderLabel.Text = titleText
+    HeaderLabel.TextColor3 = Color3.fromRGB(240, 240, 245)
+    HeaderLabel.Font = Enum.Font.GothamBold
+    HeaderLabel.TextSize = 10
+    HeaderLabel.TextXAlignment = Enum.TextXAlignment.Left
+    HeaderLabel.Parent = SectionFrame
+    
+    local ContentHolder = Instance.new("Frame")
+    ContentHolder.Name = "Holder"
+    ContentHolder.Size = UDim2.new(1, 0, 1, -32)
+    ContentHolder.Position = UDim2.new(0, 0, 0, 32)
+    ContentHolder.BackgroundTransparency = 1
+    ContentHolder.Parent = SectionFrame
+    
+    local HolderLayout = Instance.new("UIListLayout")
+    HolderLayout.Padding = UDim.new(0, 8)
+    HolderLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    HolderLayout.Parent = ContentHolder
+    
+    -- ปรับความสูงตามจำนวนลูกของมันแบบไดนามิก
+    HolderLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        SectionFrame.Size = UDim2.new(0.95, 0, 0, HolderLayout.AbsoluteContentSize.Y + 42)
+    end)
+    
+    return ContentHolder
+end
+
+-- ส่วนที่ 2: สวิตช์ปิด/เปิด (Toggle Switch)
+local function CreateToggle(parent, title, desc, defaultValue, callback)
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Size = UDim2.new(0.95, 0, 0, 42)
+    ToggleFrame.BackgroundTransparency = 1
+    ToggleFrame.Parent = parent
+    
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Size = UDim2.new(0.7, 0, 0, 22)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = title
+    TitleLabel.TextColor3 = Color3.fromRGB(230, 230, 235)
+    TitleLabel.Font = Enum.Font.GothamSemibold
+    TitleLabel.TextSize = 10
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.Parent = ToggleFrame
+    
+    local DescLabel = Instance.new("TextLabel")
+    DescLabel.Size = UDim2.new(0.7, 0, 0, 15)
+    DescLabel.Position = UDim2.new(0, 0, 0, 20)
+    DescLabel.BackgroundTransparency = 1
+    DescLabel.Text = desc
+    DescLabel.TextColor3 = Color3.fromRGB(120, 125, 140)
+    DescLabel.Font = Enum.Font.Gotham
+    DescLabel.TextSize = 8
+    DescLabel.TextXAlignment = Enum.TextXAlignment.Left
+    DescLabel.Parent = ToggleFrame
+    
+    local SwitchBtn = Instance.new("TextButton")
+    SwitchBtn.Size = UDim2.new(0, 38, 0, 18)
+    SwitchBtn.Position = UDim2.new(1, -42, 0.5, -9)
+    SwitchBtn.BackgroundColor3 = defaultValue and Color3.fromRGB(80, 110, 250) or Color3.fromRGB(40, 45, 60)
+    SwitchBtn.Text = ""
+    SwitchBtn.AutoButtonColor = false
+    SwitchBtn.Parent = ToggleFrame
+    
+    local SwitchCorner = Instance.new("UICorner")
+    SwitchCorner.CornerRadius = UDim.new(1, 0)
+    SwitchCorner.Parent = SwitchBtn
+    
+    local Knob = Instance.new("Frame")
+    Knob.Size = UDim2.new(0, 14, 0, 14)
+    Knob.Position = defaultValue and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
+    Knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Knob.BorderSizePixel = 0
+    Knob.Parent = SwitchBtn
+    
+    local KnobCorner = Instance.new("UICorner")
+    KnobCorner.CornerRadius = UDim.new(1, 0)
+    KnobCorner.Parent = Knob
+    
+    local state = defaultValue
+    SwitchBtn.MouseButton1Click:Connect(function()
+        state = not state
+        local targetPos = state and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
+        local targetColor = state and Color3.fromRGB(80, 110, 250) or Color3.fromRGB(40, 45, 60)
+        
+        TweenService:Create(Knob, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = targetPos}):Play()
+        TweenService:Create(SwitchBtn, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+        
+        callback(state)
+    end)
+end
+
+-- ส่วนที่ 3: สไลเดอร์ความละเอียดสูง (Slider)
+local function CreateSlider(parent, title, min, max, default, callback)
+    local SliderFrame = Instance.new("Frame")
+    SliderFrame.Size = UDim2.new(0.95, 0, 0, 45)
+    SliderFrame.BackgroundTransparency = 1
+    SliderFrame.Parent = parent
+    
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Size = UDim2.new(0.7, 0, 0, 18)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = title
+    TitleLabel.TextColor3 = Color3.fromRGB(190, 195, 210)
+    TitleLabel.Font = Enum.Font.GothamSemibold
+    TitleLabel.TextSize = 10
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.Parent = SliderFrame
+    
+    local ValueLabel = Instance.new("TextLabel")
+    ValueLabel.Size = UDim2.new(0.25, 0, 0, 18)
+    ValueLabel.Position = UDim2.new(0.75, 0, 0, 0)
+    ValueLabel.BackgroundTransparency = 1
+    ValueLabel.Text = tostring(default)
+    ValueLabel.TextColor3 = Color3.fromRGB(80, 110, 250)
+    ValueLabel.Font = Enum.Font.GothamBold
+    ValueLabel.TextSize = 10
+    ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    ValueLabel.Parent = SliderFrame
+    
+    local SliderBar = Instance.new("Frame")
+    SliderBar.Size = UDim2.new(1, 0, 0, 4)
+    SliderBar.Position = UDim2.new(0, 0, 0, 28)
+    SliderBar.BackgroundColor3 = Color3.fromRGB(35, 40, 55)
+    SliderBar.BorderSizePixel = 0
+    SliderBar.Parent = SliderFrame
+    
+    local BarCorner = Instance.new("UICorner")
+    BarCorner.Parent = SliderBar
+    
+    local Fill = Instance.new("Frame")
+    Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+    Fill.BackgroundColor3 = Color3.fromRGB(80, 110, 250)
+    Fill.BorderSizePixel = 0
+    Fill.Parent = SliderBar
+    
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.Parent = Fill
+    
+    local Knob = Instance.new("Frame")
+    Knob.Size = UDim2.new(0, 10, 0, 10)
+    Knob.Position = UDim2.new((default - min) / (max - min), -5, 0.5, -5)
+    Knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Knob.BorderSizePixel = 0
+    Knob.Parent = SliderBar
+    
+    local KnobCorner = Instance.new("UICorner")
+    KnobCorner.CornerRadius = UDim.new(1, 0)
+    KnobCorner.Parent = Knob
+    
+    local Trigger = Instance.new("TextButton")
+    Trigger.Size = UDim2.new(1, 0, 1, 0)
+    Trigger.BackgroundTransparency = 1
+    Trigger.Text = ""
+    Trigger.Parent = SliderBar
+    
+    local function UpdateSlider(input)
+        local inputX = input.Position.X
+        local barX = SliderBar.AbsolutePosition.X
+        local barWidth = SliderBar.AbsoluteSize.X
+        local percentage = math.clamp((inputX - barX) / barWidth, 0, 1)
+        
+        Fill.Size = UDim2.new(percentage, 0, 1, 0)
+        Knob.Position = UDim2.new(percentage, -5, 0.5, -5)
+        
+        local val = math.round(min + (percentage * (max - min)))
+        ValueLabel.Text = tostring(val)
+        callback(val)
+    end
+    
+    local dragging = false
+    Trigger.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            UpdateSlider(input)
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            UpdateSlider(input)
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+end
+
+-- ====================================================
+-- [ การออกแบบชุดฟังก์ชันลงบนหน้าเมนูหลัก ]
+-- ====================================================
+
+-- --- PAGE 1: LOCAL PLAYER UTILITIES ---
+local LocalSec = CreateSection(PageUser, "LocalPlayer (ฟังก์ชันผู้เล่น)")
+
+CreateSlider(LocalSec, "Speed (ปรับความเร็ว)", 16, 150, 16, function(val)
+    States.SpeedValue = val
+end)
+
+CreateSlider(LocalSec, "JumpPower (พลังกระโดด)", 50, 200, 50, function(val)
+    States.JumpPowerValue = val
+end)
+
+CreateToggle(LocalSec, "Noclip (เดินทะลุกำแพง)", "ทำให้ตัวละครเดินทะลุสิ่งกีดขวางได้", false, function(state)
+    States.NoclipActive = state
+end)
+
+CreateToggle(LocalSec, "Unlock Third Person (เปิดกล้องอิสระ)", "ปลดล็อกโหมดมุมมองบุคคลที่สามและซูมกล้องไกลขึ้น", false, function(state)
+    States.UnlockThirdPerson = state
+    local Camera = workspace.CurrentCamera
+    if Camera then
+        if state then
+            LocalPlayer.CameraMaxZoomDistance = 500
+        else
+            LocalPlayer.CameraMaxZoomDistance = 30
+        end
+    end
+end)
+
+local OtherSec = CreateSection(PageUser, "Other (ฟังก์ชันพิเศษสำหรับเซิร์ฟเวอร์)")
+
+CreateToggle(OtherSec, "Infinite Stamina (หลอดพละกำลังไม่จำกัด)", "ล็อกค่าสตามิน่าจากตัว ObjectivesLocal ให้เต็มตลอดกาล", false, function(state)
+    States.InfiniteStamina = state
+end)
+
+-- --- PAGE 2: AUTO HOSPITAL ---
+local AutoHospitalSec = CreateSection(PageAuto, "ระบบช่วยอำนวยความสะดวกในโรงพยาบาลสัตว์")
+
+CreateToggle(AutoHospitalSec, "Auto Treatment (รักษาคนไข้สัตว์ออโต้)", "ทำการตรวจรักษาและทำความสะอาดสัตว์เลี้ยงที่อยู่ใกล้เคียงทันที", false, function(state)
+    States.AutoTreatActive = state
+end)
+
+-- --- PAGE 3: CREDIT ---
+local CreditSec = CreateSection(PageCredit, "ข้อมูลผู้พัฒนาและทีมงาน")
+
+local InfoLabel = Instance.new("TextLabel")
+InfoLabel.Size = UDim2.new(0.95, 0, 0, 120)
+InfoLabel.BackgroundTransparency = 1
+InfoLabel.Text = "🎨 หน้าต่างดีไซน์พรีเมียมแบบ Foxname Hub\n🔧 ออกแบบเฉพาะสำหรับระบบรักษาคนไข้สัตว์ (Animal Hospital)\n\nปลดล็อกสิทธิ์ใช้งานฟรีสำหรับทุกคน!"
+InfoLabel.TextColor3 = Color3.fromRGB(170, 175, 190)
+InfoLabel.Font = Enum.Font.GothamSemibold
+InfoLabel.TextSize = 10
+InfoLabel.Parent = CreditSec
+
+-- ====================================================
+-
