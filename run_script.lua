@@ -545,4 +545,75 @@ InfoLabel.TextSize = 10
 InfoLabel.Parent = CreditSec
 
 -- ====================================================
--
+-- [ ลูปเบื้องหลัง (Background Loops & RunService) ]
+-- ====================================================
+
+-- 1. ทำงานแบบเรียลไทม์ผ่าน Heartbeat (ความเสถียรและความรวดเร็วสูงสุด)
+RunService.Heartbeat:Connect(function()
+    local Character = LocalPlayer.Character
+    if Character then
+        local RootPart = Character:FindFirstChild("HumanoidRootPart")
+        local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+        
+        -- ควบคุมความเร็วโดยไม่consumesพลังงาน
+        if Humanoid and RootPart and Humanoid.MoveDirection.Magnitude > 0 and States.SpeedValue > 16 then
+            local vel = Humanoid.MoveDirection * (States.SpeedValue - 16)
+            RootPart.AssemblyLinearVelocity = Vector3.new(vel.X, RootPart.AssemblyLinearVelocity.Y, vel.Z)
+        end
+        
+        -- ปรับปรุงพลังกระโดด
+        if Humanoid and States.JumpPowerValue > 50 then
+            Humanoid.JumpPower = States.JumpPowerValue
+        end
+        
+        -- เดินทะลุกำแพง
+        if States.NoclipActive then
+            for _, part in ipairs(Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end
+    
+    -- ล็อคความเหนื่อยให้อยู่ที่ 0 ตลอดเวลา
+    if States.InfiniteStamina then
+        ApplyInfiniteStamina(true)
+    end
+end)
+
+-- 2. รันลูปสำหรับการรักษาออโต้
+task.spawn(function()
+    while true do
+        task.wait(0.3)
+        if States.AutoTreatActive then
+            AutoInteractWithAnimals()
+        end
+    end
+end)
+
+-- ====================================================
+-- [ ปุ่มย่อ/ขยายเมนูกลมสีดำลอยได้สำหรับมือถือ ]
+-- ====================================================
+local CloseOpenButton = Instance.new("TextButton")
+CloseOpenButton.Size = UDim2.new(0, 45, 0, 45)
+CloseOpenButton.Position = UDim2.new(0.05, 0, 0.15, 0)
+CloseOpenButton.BackgroundColor3 = Color3.fromRGB(15, 17, 26)
+CloseOpenButton.Text = "FOX"
+CloseOpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseOpenButton.Font = Enum.Font.GothamBold
+CloseOpenButton.TextSize = 10
+CloseOpenButton.Parent = ScreenGui
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(1, 0)
+CloseCorner.Parent = CloseOpenButton
+
+local CloseStroke = Instance.new("UIStroke")
+CloseStroke.Thickness = 1
+CloseStroke.Color = Color3.fromRGB(50, 55, 75)
+CloseStroke.Parent = CloseOpenButton
+
+CloseOpenButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
