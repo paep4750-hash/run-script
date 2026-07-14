@@ -1,12 +1,8 @@
 --[[
     ====================================================================
-    [!] PREMIUM FOXNAME HUB - ANIMAL HOSPITAL (SANITY BYPASS EDITION)
-    [!] DESIGN: Elegant Dark Navy Glassmorphism (High-End UIStroke & Blur)
-    [!] FEATURES: 
-        - Infinite Sanity (บล็อกรีโมท RE/PlayerLostSanity ไม่ให้สมองลด)
-        - Infinite Stamina (สตามิน่าไม่จำกัดจาก ObjectivesLocal)
-        - Auto Treatment (ออโต้รักษาและล้างตัวสัตว์เลี้ยงใกล้ตัว)
-        - Premium WalkSpeed & JumpPower & Noclip
+    [!] PREMIUM FOXNAME HUB - ANIMAL HOSPITAL (STAMINA BYPASS UPDATE)
+    [!] DESIGN: Dark Navy Glassmorphism (Glassmorphic Glow, UIStroke Borders)
+    [!] FE BYPASS: Multi-Method Metatable Hook for "RE/PlayerLostSanity"
     ====================================================================
 --]]
 
@@ -21,77 +17,103 @@ local LocalPlayer = Players.LocalPlayer
 local States = {
     CurrentTab = "User",
     
-    -- LocalPlayer Utilities
+    -- LocalPlayer Settings
     SpeedValue = 16,
     JumpPowerValue = 50,
-    InfiniteStamina = false,
-    InfiniteSanity = false, -- สถานะเปิด/ปิดการล็อกสมองไม่ให้ลด
+    InfiniteStamina = false, -- บล็อก RE/PlayerLostSanity เพื่อไม่ให้ Stamina & Sanity ลด
     NoclipActive = false,
     UnlockThirdPerson = false,
     
     -- Auto Farming
-    AutoTreatActive = false
+    AutoTreatActive = false,
+    AutoStampActive = false,
+    
+    -- Notification Controller
+    BlockNotifications = false,
+    LogNotifications = false
 }
 
--- ค้นหารีโมทลดความเครียด (Sanity Remote) ตามที่คุณเจาะเจอ
-local SanityRemote = ReplicatedStorage:WaitForChild("Util"):WaitForChild("Net"):WaitForChild("RE/PlayerLostSanity")
+-- [ NETWORK REMOTES ]
+local Net = ReplicatedStorage:WaitForChild("Util"):WaitForChild("Net")
+local PlayerLostSanity = Net:WaitForChild("RE/PlayerLostSanity")
+local NotifyRemote = Net:WaitForChild("RE/Notify")
+local SetObjectiveRemote = Net:WaitForChild("RE/SetObjective")
 
 -- ====================================================
--- [ ระบบ HOOK METATABLE เพื่อบล็อกแพ็กเก็ตสมองลด (SANITY BYPASS) ]
+-- [ ระบบ MULTI-METHOD HOOK: บล็อกสัญญาณ STAMINA/SANITY ลด ]
 -- ====================================================
+-- ระบบดักฟังและสกัดกั้นระดับเอนจิ้น เพื่อหยุดการทำงานของ RE/PlayerLostSanity โดยสมบูรณ์
 local hookSuccess, hookError = pcall(function()
-    local RawMeta = getrawmetatable(game)
-    local OldNamecall = RawMeta.__namecall
-    setreadonly(RawMeta, false)
-    
-    -- ใช้เทคนิคดักจับ Namecall ระดับสูงเพื่อบล็อกรีโมทฝั่งส่งข้อมูลออก
-    RawMeta.__namecall = newcclosure(function(self, ...)
-        local method = getnamecallmethod()
-        local args = {...}
+    -- วิธีที่ 1: hookmetamethod (เสถียรที่สุดใน Executor ปัจจุบัน ป้องกันการหลุดและตรวจสอบยาก)
+    if hookmetamethod then
+        local oldNamecall
+        oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+            local method = getnamecallmethod()
+            
+            if States.InfiniteStamina and self == PlayerLostSanity and (method == "FireServer" or method == "fireServer") then
+                return nil -- บล็อกแพ็กเก็ตโยนทิ้งทันที Stamina และ Sanity จะไม่ลดลงเลย
+            end
+            
+            return oldNamecall(self, ...)
+        end)
+        print("[Foxname Loader]: บล็อกระบบผ่าน hookmetamethod สำเร็จ!")
         
-        -- หากเปิดใช้งาน Infinite Sanity และตัวเกมพยายามสั่งให้สมองลดผ่านรีโมทตัวนี้
-        if States.InfiniteSanity and self == SanityRemote and (method == "FireServer" or method == "fireServer") then
-            -- สกัดกั้นแพ็กเก็ตทันที (ส่งค่าว่างกลับไปแทนเพื่อให้เซิร์ฟเวอร์ไม่ได้รับสัญญาณความเครียด)
-            return nil
-        end
+    -- วิธีที่ 2: Standard getrawmetatable hook (ระบบสำรองสำหรับ Executor ทั่วไป)
+    elseif getrawmetatable then
+        local RawMeta = getrawmetatable(game)
+        local OldNamecall = RawMeta.__namecall
+        setreadonly(RawMeta, false)
         
-        return OldNamecall(self, unpack(args))
-    end)
-    
-    setreadonly(RawMeta, true)
+        RawMeta.__namecall = newcclosure(function(self, ...)
+            local method = getnamecallmethod()
+            
+            if States.InfiniteStamina and self == PlayerLostSanity and (method == "FireServer" or method == "fireServer") then
+                return nil
+            end
+            
+            return OldNamecall(self, ...)
+        end)
+        setreadonly(RawMeta, true)
+        print("[Foxname Loader]: บล็อกระบบผ่าน getrawmetatable สำเร็จ!")
+    else
+        warn("[!] Executor ของคุณไม่สนับสนุนการทำ Metatable Hooking")
+    end
 end)
 
-if not hookSuccess then
-    warn("[!] ไม่สามารถเริ่มระบบบ Hook ป้องกันสมองลดได้: " .. tostring(hookError))
-end
-
 -- ====================================================
--- [ ฟังก์ชันระบบฟาร์มและพละกำลัง ]
+-- [ ฟังก์ชันระบบจัดการแจ้งเตือน (RE/Notify Interceptor) ]
 -- ====================================================
-
--- 1. ระบบ Infinite Stamina (หลอดเหนื่อยไม่ลด)
-local function ApplyInfiniteStamina(enabled)
-    if not enabled then return end
-    local Character = LocalPlayer.Character
-    if Character then
-        for _, attribute in ipairs({"Stamina", "Energy", "SprintEnergy"}) do
-            if Character:GetAttribute(attribute) then
-                Character:SetAttribute(attribute, 999999)
-            end
+local notifyConnection = nil
+pcall(function()
+    notifyConnection = NotifyRemote.OnClientEvent:Connect(function(...)
+        local args = {...}
+        if States.LogNotifications then
+            local msg = tostring(args[1] or "ไม่มีข้อความ")
+            print("[Foxname Logger - Server Notify]: " .. msg)
         end
-        
-        for _, val in ipairs(Character:GetDescendants()) do
-            if val:IsA("NumberValue") or val:IsA("IntValue") then
-                local name = val.Name:lower()
-                if name:find("stamina") or name:find("energy") then
-                    val.Value = 100
+    end)
+end)
+
+local function ToggleGameNotifications(block)
+    States.BlockNotifications = block
+    if getconnections then
+        for _, connection in ipairs(getconnections(NotifyRemote.OnClientEvent)) do
+            if connection.Function ~= notifyConnection then
+                if block then
+                    connection:Disable()
+                else
+                    connection:Enable()
                 end
             end
         end
     end
 end
 
--- 2. ระบบ Auto Treatment (สแกนปุ่มกดรักษาอัตโนมัติ)
+-- ====================================================
+-- [ ฟังก์ชันการทำงานของฟาร์มอัตโนมัติ ]
+-- ====================================================
+
+-- 1. ระบบ Auto Treatment (รักษาสัตว์เลี้ยงอัตโนมัติ)
 local function AutoInteractWithAnimals()
     if not States.AutoTreatActive then return end
     for _, prompt in ipairs(workspace:GetDescendants()) do
@@ -106,20 +128,42 @@ local function AutoInteractWithAnimals()
     end
 end
 
+-- 2. ระบบ Auto Stamp Form (ประทับตราแบบฟอร์มสแตมป์สีม่วง)
+local function AutoStampForm()
+    if not States.AutoStampActive then return end
+    local FormObj = workspace:FindFirstChild("Misc", true)
+    if FormObj then
+        local CheckIn = FormObj:FindFirstChild("CheckIn")
+        local Form = CheckIn and CheckIn:FindFirstChild("Form")
+        local TargetForm = Form or workspace:FindFirstChild("Form", true)
+        
+        if TargetForm then
+            local prompt = TargetForm:FindFirstChildOfClass("ProximityPrompt") or TargetForm:FindFirstChildOfClass("ClickDetector") or TargetForm.Parent:FindFirstChildOfClass("ProximityPrompt")
+            if prompt then
+                if prompt:IsA("ProximityPrompt") then
+                    fireproximityprompt(prompt)
+                elseif prompt:IsA("ClickDetector") then
+                    fireclickdetector(prompt)
+                end
+            end
+        end
+    end
+end
+
 -- ====================================================
 -- [ การสร้างเมนู UI สไตล์ FOXNAME HUB (Navy Glass) ]
 -- ====================================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "FoxnameAnimalHospital_" .. tostring(math.random(1000, 9999))
+ScreenGui.Name = "FoxnameAnimalHospital_v5_" .. tostring(math.random(1000, 9999))
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 
--- หน้าต่างหลัก (Main Window)
+-- หน้าต่างหลัก (Main Frame)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 660, 0, 400)
 MainFrame.Position = UDim2.new(0.5, -330, 0.5, -200)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 17, 26) -- สี Navy เข้มเรียบหรูตามแบบ
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 17, 26)
 MainFrame.BackgroundTransparency = 0.15
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
@@ -130,14 +174,14 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 12)
 MainCorner.Parent = MainFrame
 
--- เส้นขอบเรืองแสงบางๆ รอบเมนูหลัก (UIStroke)
+-- เส้นขอบเรืองแสงบางๆ (UIStroke)
 local MainStroke = Instance.new("UIStroke")
 MainStroke.Thickness = 1
 MainStroke.Color = Color3.fromRGB(45, 52, 75)
 MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 MainStroke.Parent = MainFrame
 
--- แถบนำทางด้านซ้าย (Left Sidebar)
+-- แถบ Sidebar ด้านซ้าย
 local Sidebar = Instance.new("Frame")
 Sidebar.Name = "Sidebar"
 Sidebar.Size = UDim2.new(0, 180, 1, 0)
@@ -158,7 +202,7 @@ CoverFrame.BackgroundTransparency = 0.2
 CoverFrame.BorderSizePixel = 0
 CoverFrame.Parent = Sidebar
 
--- ข้อความแบรนด์และโลโก้
+-- หัวข้อโลโก้สคริปต์
 local LogoLabel = Instance.new("TextLabel")
 LogoLabel.Size = UDim2.new(1, 0, 0, 45)
 LogoLabel.BackgroundTransparency = 1
@@ -173,14 +217,14 @@ local LogoSub = Instance.new("TextLabel")
 LogoSub.Size = UDim2.new(1, 0, 0, 15)
 LogoSub.Position = UDim2.new(0, 10, 0, 32)
 LogoSub.BackgroundTransparency = 1
-LogoSub.Text = "Animal Hospital v2"
+LogoSub.Text = "Hospital Simulator"
 LogoSub.TextColor3 = Color3.fromRGB(110, 115, 135)
 LogoSub.Font = Enum.Font.GothamSemibold
 LogoSub.TextSize = 9
 LogoSub.TextXAlignment = Enum.TextXAlignment.Left
 LogoSub.Parent = Sidebar
 
--- ที่จัดเก็บปุ่มเมนูหลัก (Tab Scroller)
+-- แถบเมนูแท็บสลับหน้าจอ (Tab Scroller)
 local TabContainer = Instance.new("ScrollingFrame")
 TabContainer.Size = UDim2.new(1, -10, 1, -75)
 TabContainer.Position = UDim2.new(0, 5, 0, 65)
@@ -193,7 +237,7 @@ local TabListLayout = Instance.new("UIListLayout")
 TabListLayout.Padding = UDim.new(0, 5)
 TabListLayout.Parent = TabContainer
 
--- พื้นที่แสดงรายละเอียดคอนเทนต์ด้านขวา
+-- หน้าแสดงผลลัพธ์ข้อมูลด้านขวา
 local ContentArea = Instance.new("Frame")
 ContentArea.Name = "ContentArea"
 ContentArea.Size = UDim2.new(1, -195, 1, -20)
@@ -201,7 +245,6 @@ ContentArea.Position = UDim2.new(0, 185, 0, 10)
 ContentArea.BackgroundTransparency = 1
 ContentArea.Parent = MainFrame
 
--- โครงสร้างหน้าเพจแต่ละ Tab
 local Pages = {}
 
 local function CreatePage(name)
@@ -228,7 +271,7 @@ local PageAuto = CreatePage("Auto")
 local PageUser = CreatePage("User")
 local PageCredit = CreatePage("Credit")
 
--- ระบบสลับเปลี่ยนหน้าจอพร้อมอนิเมชั่นสมูท
+-- สลับหน้าต่างแบบสมูท
 local CurrentActiveBtn = nil
 
 local function SwitchTab(tabName, button)
@@ -274,7 +317,7 @@ local function AddTabButton(label, tabName, emoji)
     return Btn
 end
 
--- ลิสต์เมนูหลักด้านซ้าย
+-- สร้างปุ่มสลับหน้าเมนูหลัก
 local DefaultBtn = AddTabButton("Local Player", "User", "👤")
 AddTabButton("Auto Hospital", "Auto", "🏥")
 AddTabButton("About & Info", "Credit", "ℹ️")
@@ -282,10 +325,9 @@ AddTabButton("About & Info", "Credit", "ℹ️")
 SwitchTab("User", DefaultBtn)
 
 -- ====================================================
--- [ ส่วนประกอบ UI Components (สไลเดอร์, ท็อกเกิล) ]
+-- [ ระบบเครื่องมือ UI Elements (Section, Toggle, Slider) ]
 -- ====================================================
 
--- 1. กล่องจัดระเบียบหมวดหมู่ (Section)
 local function CreateSection(parent, titleText)
     local SectionFrame = Instance.new("Frame")
     SectionFrame.Size = UDim2.new(0.95, 0, 0, 40)
@@ -333,7 +375,6 @@ local function CreateSection(parent, titleText)
     return ContentHolder
 end
 
--- 2. ปุ่มท็อกเกิลสวิตช์ปิด/เปิด (Toggle Switch)
 local function CreateToggle(parent, title, desc, defaultValue, callback)
     local ToggleFrame = Instance.new("Frame")
     ToggleFrame.Size = UDim2.new(0.95, 0, 0, 42)
@@ -397,7 +438,6 @@ local function CreateToggle(parent, title, desc, defaultValue, callback)
     end)
 end
 
--- 3. สไลเดอร์สเกลการปรับแต่ง (Slider)
 local function CreateSlider(parent, title, min, max, default, callback)
     local SliderFrame = Instance.new("Frame")
     SliderFrame.Size = UDim2.new(0.95, 0, 0, 45)
@@ -496,12 +536,12 @@ local function CreateSlider(parent, title, min, max, default, callback)
     end)
 end
 
--- ====================================================
--- [ การออกแบบชุดควบคุมบนหน้ากระดาษ (Tab Content) ]
--- ====================================================
-
--- --- PAGE 1: USER UTILITIES ---
+-- --- PAGE 1: USER CONTROLS ---
 local UserSec = CreateSection(PageUser, "LocalPlayer (ฟังก์ชันผู้เล่น)")
+
+CreateSlider(UserSec, "Speed (ปรับความเร็ว)", 16, 150, 16, function(val)
+    States.SpeedValue = val
+end)
 
 CreateSlider(UserSec, "Speed (ปรับความเร็ว)", 16, 150, 16, function(val)
     States.SpeedValue = val
@@ -511,11 +551,11 @@ CreateSlider(UserSec, "JumpPower (พลังกระโดด)", 50, 200, 50,
     States.JumpPowerValue = val
 end)
 
-CreateToggle(UserSec, "Noclip (เดินทะลุกำแพง)", "ทำให้ตัวละครเดินทะลุสิ่งกีดขวางในแผนที่ได้", false, function(state)
+CreateToggle(UserSec, "Noclip (เดินทะลุกำแพง)", "ทำให้ตัวละครสามารถเดินทะลุกำแพงสิ่งกีดขวางได้", false, function(state)
     States.NoclipActive = state
 end)
 
-CreateToggle(UserSec, "Unlock Third Person (เปิดกล้องอิสระ)", "ปลดล็อกขีดจำกัดระยะการซูมกล้องเข้า-ออก", false, function(state)
+CreateToggle(UserSec, "Unlock Third Person", "ขยายพิกัดระยะการซูมออกของมุมมองบุคคลที่สาม", false, function(state)
     States.UnlockThirdPerson = state
     if state then
         LocalPlayer.CameraMaxZoomDistance = 500
@@ -524,69 +564,78 @@ CreateToggle(UserSec, "Unlock Third Person (เปิดกล้องอิส
     end
 end)
 
--- โหมดพิเศษควบคุมสมองและพละกำลัง
-local OtherSec = CreateSection(PageUser, "Other (ฟังก์ชันพิเศษข้ามขีดจำกัด)")
+-- หมวดหมู่สมองและพลังการทำงาน (Sanity & Stamina Block)
+local StaminaSec = CreateSection(PageUser, "Bypass Engine (ระบบสมองและค่าความเหนื่อยล้า)")
 
--- ฟังก์ชัน Infinite Sanity บล็อกแพ็กเก็ตที่คุณส่งมาโดยตรง!
-CreateToggle(OtherSec, "Infinite Sanity (สมองไม่ลด / ค่าความเครียดล็อก 100%)", "ดักจับและบล็อกรีโมท RE/PlayerLostSanity เพื่อป้องกันสมองลดเมื่อเครียด", false, function(state)
-    States.InfiniteSanity = state
-    
-    -- หากเปิดใช้งาน จะแจ้งเตือนสถานะความสำเร็จในฝั่ง Client
-    if state then
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "Foxname Hub",
-            Text = "เปิดใช้ล็อกสมองเต็ม 100% เรียบร้อย!",
-            Duration = 3
-        })
-    end
-end)
-
-CreateToggle(OtherSec, "Infinite Stamina (หลอดเหนื่อยไม่จำกัด)", "ล็อกค่าสตามิน่าจาก ObjectivesLocal ให้เต็มตลาดวิ่งได้ไม่สะดุด", false, function(state)
+-- ฟังก์ชันดักจับและบล็อก RE/PlayerLostSanity โดยตรงเพื่อไม่ให้ Stamina & Sanity ลด!
+CreateToggle(StaminaSec, "Infinite Stamina & Sanity (ล็อกค่าสมองและพละกำลัง)", "สั่งบล็อกรีโมท RE/PlayerLostSanity เพื่อป้องกันการลดพละกำลังและสตามิน่าจากเกม", false, function(state)
     States.InfiniteStamina = state
+    
+    local notifyText = state and "เปิดระบบล็อกพละกำลังและสมอง 100% สำเร็จ!" or "ยกเลิกการบล็อกสัญญาณ"
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Foxname Hub",
+        Text = notifyText,
+        Duration = 3
+    })
 end)
 
 -- --- PAGE 2: AUTO HOSPITAL ---
-local AutoHospitalSec = CreateSection(PageAuto, "ระบบช่วยอำนวยความสะดวกในโรงพยาบาล")
+local AutoHospitalSec = CreateSection(PageAuto, "ระบบช่วยฟาร์มและบริการทำเควสต์อัตโนมัติ")
 
-CreateToggle(AutoHospitalSec, "Auto Treatment (รักษาคนไข้สัตว์อัตโนมัติ)", "ตรวจหาและรักษาทำความสะอาดสัตว์เลี้ยงรอบตัวทันที", false, function(state)
+CreateToggle(AutoHospitalSec, "Auto Treatment (รักษาและทำความสะอาดสัตว์ออโต้)", "ตรวจจับสัตว์เลี้ยงเป้าหมายที่อยู่รอบตัวคุณแล้วกดรักษากดชำระล้างอัตโนมัติ", false, function(state)
     States.AutoTreatActive = state
 end)
 
+CreateToggle(AutoHospitalSec, "Auto Stamp Form (สแตมป์แบบฟอร์มอัตโนมัติ)", "ตรวจหาแบบฟอร์มกระดาษสีม่วงที่เคาน์เตอร์แล้วสแตมป์ประทับตราอัตโนมัติ", false, function(state)
+    States.AutoStampActive = state
+end)
+
+-- ระบบตัดการแจ้งเตือนป๊อปอัพหน้าจอดังเดิมจากรีโมท RE/Notify
+local NotifySec = CreateSection(PageAuto, "ระบบดักจับแจ้งเตือนป๊อปอัพเกม (RE/Notify)")
+
+CreateToggle(NotifySec, "Block Game Popups (บล็อกแจ้งเตือนเด้งกวนหน้าจอ)", "ปิดป๊อปอัพแจ้งเตือนของตัวเกมทั้งหมด เพื่อไม่ให้สแปมรกหน้าจอขณะฟาร์ม", false, function(state)
+    ToggleGameNotifications(state)
+end)
+
+CreateToggle(NotifySec, "Log Notifications to F9 Console", "ดักฟังข้อความแล้วนำมาบันทึกเป็นประวัติเก็บไว้ใน Console แทนการเด้งขึ้นจอ", false, function(state)
+    States.LogNotifications = state
+end)
+
 -- --- PAGE 3: CREDIT ---
-local CreditSec = CreateSection(PageCredit, "ข้อมูลผู้พัฒนาและทีมงาน")
+local CreditSec = CreateSection(PageCredit, "ข้อมูลผู้พัฒนาและการถอดรหัส")
 
 local InfoLabel = Instance.new("TextLabel")
 InfoLabel.Size = UDim2.new(0.95, 0, 0, 120)
 InfoLabel.BackgroundTransparency = 1
-InfoLabel.Text = "🎨 ดีไซน์ UI แบบหรูหราสไตล์ Foxname Hub\n🔧 อัปเกรดระบบ Bypass Sanity ด้วยรีโมทส่งสัญญาณในระบบเครือข่าย\n\nเปิดให้ใช้งานอย่างปลอดภัย ไร้กังวลเรื่องการโดนดักจับซอร์สโค้ด!"
+InfoLabel.Text = "🎨 หน้าต่างเมนู Foxname Hub สวยงามแบบ Navy Glass\n⚡ ถอดระบบการทำงานของ RE/PlayerLostSanity เพื่อบล็อก Stamina/Sanity ลด\n\nเปิดใช้งานได้อย่างปลอดภัยและรันได้อย่างเสถียร!"
 InfoLabel.TextColor3 = Color3.fromRGB(170, 175, 190)
 InfoLabel.Font = Enum.Font.GothamSemibold
 InfoLabel.TextSize = 10
 InfoLabel.Parent = CreditSec
 
 -- ====================================================
--- [ การควบคุมและการทำงานเบื้องหลัง (Background Thread) ]
+-- [ ลูปเบื้องหลัง (Background Runtime Engine) ]
 -- ====================================================
 
--- 1. ลูปการเคลื่อนไหวและการควบคุมสถานะผู้เล่นแบบเรียลไทม์
+-- 1. ลูปตรวจสอบ Attributes และทิศทางความเร็วแบบเรียลไทม์
 RunService.Heartbeat:Connect(function()
     local Character = LocalPlayer.Character
     if Character then
         local RootPart = Character:FindFirstChild("HumanoidRootPart")
         local Humanoid = Character:FindFirstChildOfClass("Humanoid")
         
-        -- ควบคุมทิศทางความเร็วอย่างนุ่มนวลตรวจจับยาก
+        -- บาลานซ์ความเร็วด้วยแรงเฉื่อย (AssemblyLinearVelocity Bypass)
         if Humanoid and RootPart and Humanoid.MoveDirection.Magnitude > 0 and States.SpeedValue > 16 then
             local vel = Humanoid.MoveDirection * (States.SpeedValue - 16)
             RootPart.AssemblyLinearVelocity = Vector3.new(vel.X, RootPart.AssemblyLinearVelocity.Y, vel.Z)
         end
         
-        -- กำหนดพลังกระโดด
+        -- ปรับปรุงพละกำลังการกระโดด
         if Humanoid and States.JumpPowerValue > 50 then
             Humanoid.JumpPower = States.JumpPowerValue
         end
         
-        -- สั่งปิด CanCollide ของร่างกายหากเปิด Noclip
+        -- รันระบบ CanCollide เคลื่อนที่ทะลุกำแพง
         if States.NoclipActive then
             for _, part in ipairs(Character:GetDescendants()) do
                 if part:IsA("BasePart") then
@@ -594,26 +643,24 @@ RunService.Heartbeat:Connect(function()
                 end
             end
         end
-        
-        -- ประมวลผลเมื่อเลือก Infinite Stamina
-        if States.InfiniteStamina then
-            ApplyInfiniteStamina(true)
-        end
     end
 end)
 
--- 2. สั่งเริ่มระบบออโต้ฟาร์มรักษาคนไข้สัตว์เลี้ยงเป็นระยะ
+-- 2. สั่งรันลูปออโต้ฟาร์มภารกิจรอบข้างเป็นระยะ
 task.spawn(function()
     while true do
-        task.wait(0.3)
+        task.wait(0.2)
         if States.AutoTreatActive then
             AutoInteractWithAnimals()
+        end
+        if States.AutoStampActive then
+            AutoStampForm()
         end
     end
 end)
 
 -- ====================================================
--- [ ปุ่มย่อ/ขยายหน้าเมนูวงกลมกลมลอยตัวสำหรับมือถือ ]
+-- [ ปุ่มย่อ/ขยายหน้าต่างเมนูกลมสีดำลอยได้ ]
 -- ====================================================
 local CloseOpenButton = Instance.new("TextButton")
 CloseOpenButton.Size = UDim2.new(0, 45, 0, 45)
