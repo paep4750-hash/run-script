@@ -2,7 +2,6 @@
 -- FOXNAME HUB v6 (NAVY GLASS) - PART 1: CORE ENGINE
 -- ====================================================
 
--- ประกาศตัวแปรส่วนกลางเพื่อใช้เชื่อมต่อไปยังพาร์ท 2
 getgenv().InfiniteStaminaActive = true
 
 getgenv().States = {
@@ -15,7 +14,7 @@ getgenv().States = {
     AutoStampActive = false,
     BlockNotifications = false,
     LogNotifications = false,
-    SpoofStatsActive = false -- ฟังก์ชันใหม่สลับค่าสถานะจำลองฝั่ง Client
+    SpoofStatsActive = false
 }
 
 local Players = game:GetService("Players")
@@ -26,7 +25,7 @@ local Net = ReplicatedStorage:WaitForChild("Util"):WaitForChild("Net")
 local PlayerLostSanity = Net:WaitForChild("RE/PlayerLostSanity")
 local StatsEvent = Net:WaitForChild("RE/Stats")
 
--- 1. บล็อกข้อมูลฝั่งเซิร์ฟเวอร์เรื่องความเหนื่อยล้า (Bypass)
+-- 1. บล็อกข้อมูลความเหนื่อยล้าฝั่ง Server
 local hookSuccess, hookError = pcall(function()
     local oldNamecall
     oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
@@ -40,7 +39,7 @@ local hookSuccess, hookError = pcall(function()
     end)
 end)
 
--- 2. ลูปตรวจสอบล็อกหลอดในเครื่อง (Stamina & Sanity) ให้เต็ม 100 ตลอดเวลา
+-- 2. ลูปตรวจสอบล็อกหลอดในเครื่อง (Stamina & Sanity)
 task.spawn(function()
     while task.wait(0.1) do
         if getgenv().InfiniteStaminaActive then
@@ -57,7 +56,7 @@ task.spawn(function()
     end
 end)
 
--- 3. [ฟังก์ชันใหม่] ระบบ Spoof Stats ดักจับการอัปเดตสถิติเพื่อแปลงค่าปลอม
+-- 3. ระบบ Spoof Stats
 local statsConnection
 pcall(function()
     statsConnection = StatsEvent.OnClientEvent:Connect(function(actionType, statsTable, updateField, extraData)
@@ -72,10 +71,10 @@ pcall(function()
     end)
 end)
 
-print("[Part 1]: ล็อกหลอดสมอง/พลังงาน และระบบดักค่า Spoof ทำงานแล้ว!")
+print("[Part 1]: ระบบ Core และบล็อกเซิร์ฟเวอร์พร้อมใช้งาน!")
 
 -- ====================================================
--- FOXNAME HUB v6 (NAVY GLASS) - PART 2: UI & AUTOMATION
+-- FOXNAME HUB v6 (NAVY GLASS) - PART 2: UI & NEW FEATURES
 -- ====================================================
 
 local States = getgenv().States or {
@@ -100,8 +99,9 @@ local LocalPlayer = Players.LocalPlayer
 local Net = ReplicatedStorage:WaitForChild("Util"):WaitForChild("Net")
 local StatsEvent = Net:WaitForChild("RE/Stats")
 local NotifyRemote = Net:WaitForChild("RE/Notify")
+local SetObjectiveEvent = Net:WaitForChild("RE/SetObjective")
 
--- [ บล็อกการแจ้งเตือนและระบบกรองสกรีนเนอร์ ]
+-- [ ฟังก์ชันระบบความปลอดภัยและการแจ้งเตือน ]
 local notifyConnection = nil
 pcall(function()
     notifyConnection = NotifyRemote.OnClientEvent:Connect(function(...)
@@ -123,7 +123,7 @@ local function ToggleGameNotifications(block)
     end
 end
 
--- [ ระบบบอทช่วยเหลือ ]
+-- [ ระบบบอทช่วยเหลือเดิม ]
 local function AutoInteractWithAnimals()
     if not States.AutoTreatActive then return end
     for _, prompt in ipairs(workspace:GetDescendants()) do
@@ -153,7 +153,7 @@ local function AutoStampForm()
     end
 end
 
--- [ สร้างหน้าต่างเมนูต้นฉบับ ]
+-- [ สร้างหน้าต่างเมนู Navy Glass ]
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "FoxnameHospitalUI_v6_Final"
 ScreenGui.ResetOnSpawn = false
@@ -199,7 +199,7 @@ LogoLabel.TextSize = 12
 LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
 LogoLabel.Parent = Sidebar
 
--- ส่วนพื้นที่วางปุ่มต่างๆ
+-- ส่วนพื้นที่เนื้อหาขวา
 local ContentArea = Instance.new("Frame")
 ContentArea.Size = UDim2.new(1, -165, 1, -20)
 ContentArea.Position = UDim2.new(0, 155, 0, 10)
@@ -212,7 +212,7 @@ local function CreatePage(name)
     Page.Name = name .. "Page"
     Page.Size = UDim2.new(1, 0, 1, 0)
     Page.BackgroundTransparency = 1
-    Page.CanvasSize = UDim2.new(0, 0, 0, 400)
+    Page.CanvasSize = UDim2.new(0, 0, 0, 480) -- เพิ่มพื้นที่ขยายสำหรับฟังก์ชันใหม่
     Page.ScrollBarThickness = 2
     Page.ScrollBarImageColor3 = Color3.fromRGB(45, 52, 75)
     Page.Visible = false
@@ -258,7 +258,7 @@ AddTabBtn("👤 Player Specs", "User")
 AddTabBtn("🏥 Auto Hospital", "Auto")
 SwitchTab("User")
 
--- [ ฟังก์ชันเครื่องมือสร้าง UI ]
+-- [ เครื่องมือสร้างสลัก UI (Toggle, Slider และ Button เพิ่มเข้ามาใหม่) ]
 local function AddToggle(parent, txt, default, callback)
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(0.95, 0, 0, 35)
@@ -375,7 +375,28 @@ local function AddSlider(parent, title, min, max, default, callback)
     end)
 end
 
--- [ ใส่ฟังก์ชันลงแท็บต่าง ๆ ]
+local function AddButton(parent, txt, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0.95, 0, 0, 35)
+    Frame.BackgroundTransparency = 1
+    Frame.Parent = parent
+    
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(0.95, 0, 0, 28)
+    Btn.Position = UDim2.new(0.025, 0, 0.5, -14)
+    Btn.BackgroundColor3 = Color3.fromRGB(35, 45, 65)
+    Btn.Text = txt
+    Btn.TextColor3 = Color3.fromRGB(245, 245, 250)
+    Btn.Font = Enum.Font.GothamSemibold
+    Btn.TextSize = 9
+    Btn.Parent = Frame
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 4)
+    Corner.Parent = Btn
+    
+    Btn.MouseButton1Click:Connect(callback)
+end
 
 -- === แท็บที่ 1: USER CONTROLS (👤 Player Specs) ===
 AddSlider(PageUser, "Speed (ปรับความเร็วตัวละคร)", 16, 150, 16, function(val) States.SpeedValue = val end)
@@ -392,24 +413,47 @@ AddToggle(PageUser, "Unlock Third Person (ซูมมุมมองไกล)"
     LocalPlayer.CameraMaxZoomDistance = state and 500 or 30
 end)
 
--- ปุ่มฟังก์ชันใหม่: ปุ่มสลับระบบสร้างค่าพลังจำลอง
 AddToggle(PageUser, "Spoof Stats (จำลองเงิน & สถิติ)", false, function(state)
     States.SpoofStatsActive = state
     if state then
         pcall(function()
-            -- สั่งให้สัญญาณจำลองส่งข้อมูลไปหลอกฝั่ง UI ของเกมทันที
             firesignal(StatsEvent.OnClientEvent, "Stats", {}, "PatientsCheckedIn", nil)
         end)
     end
 end)
 
 -- === แท็บที่ 2: AUTO CONTROLS (🏥 Auto Hospital) ===
-AddToggle(PageAuto, "Auto Treat Animals (รักษาสัตว์ออ้ต)", false, function(state) States.AutoTreatActive = state end)
+AddToggle(PageAuto, "Auto Treat Animals (รักษาสัตว์ออโต้)", false, function(state) States.AutoTreatActive = state end)
 AddToggle(PageAuto, "Auto Stamp Form (ปั๊มตรากระดาษม่วง)", false, function(state) States.AutoStampActive = state end)
 AddToggle(PageAuto, "Block Game Popups (บล็อกแจ้งเตือนเด้งกวนใจ)", false, function(state) ToggleGameNotifications(state) end)
 AddToggle(PageAuto, "Log Notifications to F9 Console", false, function(state) States.LogNotifications = state end)
 
--- [ ลูปเบื้องหลังความเร็วและปีนป่าย ]
+-- [ 🆕 ปุ่มฟังก์ชันใหม่ที่ได้จาก Cobalt (Fast Objective Tools) ]
+AddButton(PageAuto, "⚡ Instant Register PC", function()
+    pcall(function()
+        firesignal(SetObjectiveEvent.OnClientEvent, "Register in PC", nil, workspace.Misc.CheckIn.Computer)
+    end)
+end)
+
+AddButton(PageAuto, "📸 Instant Take Photo", function()
+    pcall(function()
+        firesignal(SetObjectiveEvent.OnClientEvent, "Take a photo", nil, workspace.Misc.CheckIn.Camera)
+    end)
+end)
+
+AddButton(PageAuto, "🖨️ Instant Print Badge", function()
+    pcall(function()
+        firesignal(SetObjectiveEvent.OnClientEvent, "Print Badge", nil, workspace.Misc.CheckIn.Printer)
+    end)
+end)
+
+AddButton(PageAuto, "❌ Clear/Reset Objective", function()
+    pcall(function()
+        firesignal(SetObjectiveEvent.OnClientEvent, "", nil, nil)
+    end)
+end)
+
+-- [ ระบบวนลูปขยับตัวละคร ]
 RunService.Heartbeat:Connect(function()
     local Character = LocalPlayer.Character
     if Character then
@@ -428,7 +472,7 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- ลูปรักษาสัตว์และการทำงานออโต้ฟาร์ม
+-- บอทกระซิบ
 task.spawn(function()
     while true do
         task.wait(0.25)
@@ -437,7 +481,7 @@ task.spawn(function()
     end
 end)
 
--- [ ปุ่มกลมลอยย่อหน้าต่าง ]
+-- [ ปุ่มกลมย่อหน้าต่าง ]
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Size = UDim2.new(0, 40, 0, 40)
 MinimizeBtn.Position = UDim2.new(0, 10, 0, 10)
@@ -456,4 +500,4 @@ MinimizeBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
 
-print("[Part 2]: โครงสร้างเมนู Navy Glass ต้นฉบับและปุ่มเปิด Spoof Stats โหลดเสร็จเรียบร้อย!")
+print("[Part 2]: ประกอบเมนูปุ่มจำลองภารกิจด่วน 4 รายการเสร็จสิ้น!")
