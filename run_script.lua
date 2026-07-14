@@ -1,10 +1,54 @@
---[[
-    ====================================================================
-    [!] PREMIUM FOXNAME HUB - ANIMAL HOSPITAL (v6.0 ULTIMATE BYPASS)
-    [!] DESIGN: Dark Navy Glassmorphism (Glassmorphic Glow, UIStroke Borders)
-    [!] COBALT ANALYSIS APPLIED: Targeted "RE/PlayerLostSanity" (1, "Job Stress", true)
-    ====================================================================
---]]
+-- ====================================================
+-- PART 1: FOXNAME INFINITY SANITY & STAMINA BYPASS
+-- ====================================================
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- ประกาศสร้าง Global State ป้องกันค่าหายจากการรีเซ็ตตัวละคร
+getgenv().InfiniteStaminaActive = true
+
+-- 1. บล็อกการยิงรีโมทโดยตรง (บังคับคืนค่าว่างทันที)
+local Net = ReplicatedStorage:WaitForChild("Util"):WaitForChild("Net")
+local PlayerLostSanity = Net:WaitForChild("RE/PlayerLostSanity")
+
+local hookSuccess, hookError = pcall(function()
+    local oldNamecall
+    oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+        local method = getnamecallmethod()
+        
+        if self == PlayerLostSanity and (method == "FireServer" or method == "fireServer") then
+            if getgenv().InfiniteStaminaActive then
+                return nil -- บล็อกแพ็กเก็ตโยนทิ้งทันที สตามิน่าจะไม่ลด
+            end
+        end
+        return oldNamecall(self, ...)
+    end)
+end)
+
+-- 2. เจาะระบบลดหลอดภายในเครื่อง (สแกนทับค่า Attributes ให้เต็มตลอดเวลา)
+task.spawn(function()
+    while task.wait(0.1) do
+        if getgenv().InfiniteStaminaActive then
+            pcall(function()
+                local Character = LocalPlayer.Character
+                if Character then
+                    if Character:GetAttribute("Stamina") then Character:SetAttribute("Stamina", 100) end
+                    if Character:GetAttribute("Sanity") then Character:SetAttribute("Sanity", 100) end
+                    if LocalPlayer:GetAttribute("Stamina") then LocalPlayer:SetAttribute("Stamina", 100) end
+                    if LocalPlayer:GetAttribute("Sanity") then LocalPlayer:SetAttribute("Sanity", 100) end
+                end
+            end)
+        end
+    end
+end)
+
+print("[Part 1]: ระบบล็อคค่า Stamina & Sanity (Infinity) รันสำเร็จ!")
+
+-- ====================================================
+-- PART 2: FOXNAME MAIN UI & ALL CONTROL FEATURES
+-- ====================================================
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,93 +60,27 @@ local LocalPlayer = Players.LocalPlayer
 -- [ CONFIGURATION & STATE MANAGEMENT ]
 local States = {
     CurrentTab = "User",
-    
-    -- LocalPlayer Settings
     SpeedValue = 16,
     JumpPowerValue = 50,
-    InfiniteStamina = false, -- บล็อกแพ็กเก็ตลด Stamina & Sanity
     NoclipActive = false,
     UnlockThirdPerson = false,
-    
-    -- Auto Farming
     AutoTreatActive = false,
     AutoStampActive = false,
-    
-    -- Notification Controller
     BlockNotifications = false,
     LogNotifications = false
 }
 
 -- [ NETWORK REMOTES ]
 local Net = ReplicatedStorage:WaitForChild("Util"):WaitForChild("Net")
-local PlayerLostSanity = Net:WaitForChild("RE/PlayerLostSanity")
 local NotifyRemote = Net:WaitForChild("RE/Notify")
 
--- ====================================================
--- [ ระบบ COBALT BYPASS: ดักจับและสลับค่า "Job Stress" แพ็กเก็ต ]
--- ====================================================
-local hookSuccess, hookError = pcall(function()
-    if hookmetamethod then
-        local oldNamecall
-        oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-            local method = getnamecallmethod()
-            local args = {...}
-            
-            -- ตรวจจับรีโมทที่ส่งข้อมูลความเหนื่อยล้าและสแตมิน่าลด (RE/PlayerLostSanity)
-            if self == PlayerLostSanity and (method == "FireServer" or method == "fireServer") then
-                if States.InfiniteStamina then
-                    -- ดักจับเงื่อนไขพารามิเตอร์ที่คุณดึงค่าออกมาได้จาก Cobalt: (1, "Job Stress", true)
-                    if args[2] == "Job Stress" then
-                        -- ดัดแปลงข้อมูลกลางอากาศส่งไปเซิร์ฟเวอร์ (Spoofing) เพื่อความปลอดภัยสูงสุดไม่ให้ตัวเกมตรวจพบความผิดปกติ
-                        args[1] = 0       -- เปลี่ยนความเสียหายต่อสมอง/สตามิน่าให้เป็น 0
-                        args[3] = false   -- ยกเลิกสถานะการเหนื่อยล้า
-                        return oldNamecall(self, unpack(args))
-                    end
-                end
-            end
-            
-            return oldNamecall(self, ...)
-        end)
-        print("[Foxname Loader]: บล็อกระบบลดพละกำลังผ่าน hookmetamethod สำเร็จ!")
-        
-    elseif getrawmetatable then
-        local RawMeta = getrawmetatable(game)
-        local OldNamecall = RawMeta.__namecall
-        setreadonly(RawMeta, false)
-        
-        RawMeta.__namecall = newcclosure(function(self, ...)
-            local method = getnamecallmethod()
-            local args = {...}
-            
-            if self == PlayerLostSanity and (method == "FireServer" or method == "fireServer") then
-                if States.InfiniteStamina then
-                    if args[2] == "Job Stress" then
-                        args[1] = 0
-                        args[3] = false
-                        return OldNamecall(self, unpack(args))
-                    end
-                end
-            end
-            
-            return OldNamecall(self, ...)
-        end)
-        setreadonly(RawMeta, true)
-        print("[Foxname Loader]: บล็อกระบบลดพละกำลังผ่าน getrawmetatable สำเร็จ!")
-    else
-        warn("[!] Executor ของคุณไม่สนับสนุนฟังก์ชันการทำ Metatable Hooking")
-    end
-end)
-
--- ====================================================
--- [ ฟังก์ชันระบบจัดการแจ้งเตือน (RE/Notify Interceptor) ]
--- ====================================================
+-- [ ฟังก์ชันจัดการแจ้งเตือนเด้งหน้าจอ (RE/Notify Interceptor) ]
 local notifyConnection = nil
 pcall(function()
     notifyConnection = NotifyRemote.OnClientEvent:Connect(function(...)
-        local args = {...}
         if States.LogNotifications then
-            local msg = tostring(args[1] or "ไม่มีข้อความ")
-            print("[Foxname Logger - Server Notify]: " .. msg)
+            local args = {...}
+            print("[Foxname Logger - Notify]: " .. tostring(args[1] or ""))
         end
     end)
 end)
@@ -112,36 +90,25 @@ local function ToggleGameNotifications(block)
     if getconnections then
         for _, connection in ipairs(getconnections(NotifyRemote.OnClientEvent)) do
             if connection.Function ~= notifyConnection then
-                if block then
-                    connection:Disable()
-                else
-                    connection:Enable()
-                end
+                if block then connection:Disable() else connection:Enable() end
             end
         end
     end
 end
 
--- ====================================================
--- [ ฟังก์ชันการทำงานของระบบฟาร์มอัตโนมัติ ]
--- ====================================================
-
--- 1. ระบบ Auto Treatment (รักษาและแปรงตัวสัตว์เลี้ยงอัตโนมัติ)
+-- [ ฟังก์ชันฟาร์มอัตโนมัติ ]
 local function AutoInteractWithAnimals()
     if not States.AutoTreatActive then return end
     for _, prompt in ipairs(workspace:GetDescendants()) do
         if prompt:IsA("ProximityPrompt") then
             local parent = prompt.Parent
-            if parent and (parent.Name:lower():find("patient") or parent.Name:lower():find("animal") or parent.Name:lower():find("treat") or parent.Name:lower():find("pet")) then
-                task.spawn(function()
-                    fireproximityprompt(prompt)
-                end)
+            if parent and (parent.Name:lower():find("patient") or parent.Name:lower():find("animal") or parent.Name:lower():find("treat")) then
+                task.spawn(function() fireproximityprompt(prompt) end)
             end
         end
     end
 end
 
--- 2. ระบบ Auto Stamp Form (ประทับตราแบบฟอร์มสแตมป์สีม่วงที่เคาน์เตอร์)
 local function AutoStampForm()
     if not States.AutoStampActive then return end
     local FormObj = workspace:FindFirstChild("Misc", true)
@@ -149,36 +116,27 @@ local function AutoStampForm()
         local CheckIn = FormObj:FindFirstChild("CheckIn")
         local Form = CheckIn and CheckIn:FindFirstChild("Form")
         local TargetForm = Form or workspace:FindFirstChild("Form", true)
-        
         if TargetForm then
-            local prompt = TargetForm:FindFirstChildOfClass("ProximityPrompt") or TargetForm:FindFirstChildOfClass("ClickDetector") or TargetForm.Parent:FindFirstChildOfClass("ProximityPrompt")
+            local prompt = TargetForm:FindFirstChildOfClass("ProximityPrompt") or TargetForm:FindFirstChildOfClass("ClickDetector")
             if prompt then
-                if prompt:IsA("ProximityPrompt") then
-                    fireproximityprompt(prompt)
-                elseif prompt:IsA("ClickDetector") then
-                    fireclickdetector(prompt)
-                end
+                if prompt:IsA("ProximityPrompt") then fireproximityprompt(prompt)
+                elseif prompt:IsA("ClickDetector") then fireclickdetector(prompt) end
             end
         end
     end
 end
 
--- ====================================================
--- [ การสร้างเมนู UI สไตล์ FOXNAME HUB (Navy Glass) ]
--- ====================================================
+-- [ สร้างหน้าจอ UI สไตล์ NAVY GLASS ]
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "FoxnameAnimalHospital_v6_" .. tostring(math.random(1000, 9999))
+ScreenGui.Name = "FoxnameHospitalUI_v6_Final"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 
--- หน้าต่างหลัก (Main Frame)
 local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 660, 0, 400)
-MainFrame.Position = UDim2.new(0.5, -330, 0.5, -200)
+MainFrame.Size = UDim2.new(0, 550, 0, 360)
+MainFrame.Position = UDim2.new(0.5, -275, 0.5, -180)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 17, 26)
 MainFrame.BackgroundTransparency = 0.15
-MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
@@ -187,17 +145,14 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 12)
 MainCorner.Parent = MainFrame
 
--- เส้นขอบเรืองแสงสว่างบางๆ (UIStroke)
 local MainStroke = Instance.new("UIStroke")
 MainStroke.Thickness = 1
 MainStroke.Color = Color3.fromRGB(45, 52, 75)
-MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 MainStroke.Parent = MainFrame
 
 -- แถบ Sidebar ด้านซ้าย
 local Sidebar = Instance.new("Frame")
-Sidebar.Name = "Sidebar"
-Sidebar.Size = UDim2.new(0, 180, 1, 0)
+Sidebar.Size = UDim2.new(0, 150, 1, 0)
 Sidebar.BackgroundColor3 = Color3.fromRGB(10, 12, 18)
 Sidebar.BackgroundTransparency = 0.2
 Sidebar.BorderSizePixel = 0
@@ -207,72 +162,37 @@ local SidebarCorner = Instance.new("UICorner")
 SidebarCorner.CornerRadius = UDim.new(0, 12)
 SidebarCorner.Parent = Sidebar
 
-local CoverFrame = Instance.new("Frame")
-CoverFrame.Size = UDim2.new(0, 15, 1, 0)
-CoverFrame.Position = UDim2.new(1, -15, 0, 0)
-CoverFrame.BackgroundColor3 = Color3.fromRGB(10, 12, 18)
-CoverFrame.BackgroundTransparency = 0.2
-CoverFrame.BorderSizePixel = 0
-CoverFrame.Parent = Sidebar
-
--- หัวข้อโลโก้สคริปต์
 local LogoLabel = Instance.new("TextLabel")
 LogoLabel.Size = UDim2.new(1, 0, 0, 45)
 LogoLabel.BackgroundTransparency = 1
-LogoLabel.Text = "  Foxname Hub"
+LogoLabel.Text = "  Foxname Hub v6"
 LogoLabel.TextColor3 = Color3.fromRGB(245, 245, 250)
 LogoLabel.Font = Enum.Font.GothamBold
-LogoLabel.TextSize = 13
+LogoLabel.TextSize = 12
 LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
 LogoLabel.Parent = Sidebar
 
-local LogoSub = Instance.new("TextLabel")
-LogoSub.Size = UDim2.new(1, 0, 0, 15)
-LogoSub.Position = UDim2.new(0, 10, 0, 32)
-LogoSub.BackgroundTransparency = 1
-LogoSub.Text = "Hospital Simulator"
-LogoSub.TextColor3 = Color3.fromRGB(110, 115, 135)
-LogoSub.Font = Enum.Font.GothamSemibold
-LogoSub.TextSize = 9
-LogoSub.TextXAlignment = Enum.TextXAlignment.Left
-LogoSub.Parent = Sidebar
-
--- แถบเมนูแท็บสลับหน้าจอ (Tab Scroller)
-local TabContainer = Instance.new("ScrollingFrame")
-TabContainer.Size = UDim2.new(1, -10, 1, -75)
-TabContainer.Position = UDim2.new(0, 5, 0, 65)
-TabContainer.BackgroundTransparency = 1
-TabContainer.CanvasSize = UDim2.new(0, 0, 0, 300)
-TabContainer.ScrollBarThickness = 0
-TabContainer.Parent = Sidebar
-
-local TabListLayout = Instance.new("UIListLayout")
-TabListLayout.Padding = UDim.new(0, 5)
-TabListLayout.Parent = TabContainer
-
--- หน้าแสดงผลลัพธ์ข้อมูลด้านขวา
+-- แถบสำหรับใส่เนื้อหาคอนโทรลเลอร์
 local ContentArea = Instance.new("Frame")
-ContentArea.Name = "ContentArea"
-ContentArea.Size = UDim2.new(1, -195, 1, -20)
-ContentArea.Position = UDim2.new(0, 185, 0, 10)
+ContentArea.Size = UDim2.new(1, -165, 1, -20)
+ContentArea.Position = UDim2.new(0, 155, 0, 10)
 ContentArea.BackgroundTransparency = 1
 ContentArea.Parent = MainFrame
 
 local Pages = {}
-
 local function CreatePage(name)
     local Page = Instance.new("ScrollingFrame")
     Page.Name = name .. "Page"
     Page.Size = UDim2.new(1, 0, 1, 0)
     Page.BackgroundTransparency = 1
-    Page.CanvasSize = UDim2.new(0, 0, 0, 450)
+    Page.CanvasSize = UDim2.new(0, 0, 0, 400)
     Page.ScrollBarThickness = 2
     Page.ScrollBarImageColor3 = Color3.fromRGB(45, 52, 75)
     Page.Visible = false
     Page.Parent = ContentArea
     
     local PageLayout = Instance.new("UIListLayout")
-    PageLayout.Padding = UDim.new(0, 12)
+    PageLayout.Padding = UDim.new(0, 10)
     PageLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     PageLayout.Parent = Page
     
@@ -280,233 +200,120 @@ local function CreatePage(name)
     return Page
 end
 
-local PageAuto = CreatePage("Auto")
 local PageUser = CreatePage("User")
-local PageCredit = CreatePage("Credit")
+local PageAuto = CreatePage("Auto")
 
--- สลับหน้าต่างแบบสมูท
-local CurrentActiveBtn = nil
-
-local function SwitchTab(tabName, button)
+local function SwitchTab(tabName)
     for name, page in pairs(Pages) do
         page.Visible = (name == tabName)
     end
-    
-    if CurrentActiveBtn then
-        TweenService:Create(CurrentActiveBtn, TweenInfo.new(0.2), {
-            BackgroundColor3 = Color3.fromRGB(15, 17, 26),
-            TextColor3 = Color3.fromRGB(130, 135, 150)
-        }):Play()
-    end
-    
-    CurrentActiveBtn = button
-    TweenService:Create(button, TweenInfo.new(0.2), {
-        BackgroundColor3 = Color3.fromRGB(28, 32, 48),
-        TextColor3 = Color3.fromRGB(255, 255, 255)
-    }):Play()
-    
-    States.CurrentTab = tabName
 end
 
-local function AddTabButton(label, tabName, emoji)
+local function AddTabBtn(txt, pageName)
     local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(0.95, 0, 0, 36)
-    Btn.BackgroundColor3 = Color3.fromRGB(15, 17, 26)
-    Btn.Text = "  " .. emoji .. "   " .. label
-    Btn.TextColor3 = Color3.fromRGB(130, 135, 150)
+    Btn.Size = UDim2.new(0.9, 0, 0, 32)
+    Btn.Position = UDim2.new(0.05, 0, 0, #Sidebar:GetChildren() * 34 + 15)
+    Btn.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
+    Btn.Text = txt
+    Btn.TextColor3 = Color3.fromRGB(220, 225, 240)
     Btn.Font = Enum.Font.GothamSemibold
     Btn.TextSize = 10
-    Btn.TextXAlignment = Enum.TextXAlignment.Left
-    Btn.AutoButtonColor = false
-    Btn.Parent = TabContainer
+    Btn.Parent = Sidebar
     
     local Corner = Instance.new("UICorner")
     Corner.CornerRadius = UDim.new(0, 6)
     Corner.Parent = Btn
     
+    Btn.MouseButton1Click:Connect(function() SwitchTab(pageName) end)
+end
+
+AddTabBtn("👤 Player Specs", "User")
+AddTabBtn("🏥 Auto Hospital", "Auto")
+SwitchTab("User")
+
+-- [ ฟังก์ชันสร้างเครื่องมือ UI: Toggles & Sliders ]
+local function AddToggle(parent, txt, default, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0.95, 0, 0, 35)
+    Frame.BackgroundTransparency = 1
+    Frame.Parent = parent
+    
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.7, 0, 1, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = txt
+    Label.TextColor3 = Color3.fromRGB(220, 225, 240)
+    Label.Font = Enum.Font.GothamSemibold
+    Label.TextSize = 9
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
+    
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(0, 45, 0, 18)
+    Btn.Position = UDim2.new(1, -50, 0.5, -9)
+    Btn.BackgroundColor3 = default and Color3.fromRGB(80, 110, 250) or Color3.fromRGB(40, 45, 60)
+    Btn.Text = default and "ON" or "OFF"
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.Font = Enum.Font.GothamBold
+    Btn.TextSize = 8
+    Btn.Parent = Frame
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 4)
+    Corner.Parent = Btn
+    
+    local active = default
     Btn.MouseButton1Click:Connect(function()
-        SwitchTab(tabName, Btn)
-    end)
-    return Btn
-end
-
--- สร้างปุ่มสลับหน้าเมนูหลัก
-local DefaultBtn = AddTabButton("Local Player", "User", "👤")
-AddTabButton("Auto Hospital", "Auto", "🏥")
-AddTabButton("About & Info", "Credit", "ℹ️")
-
-SwitchTab("User", DefaultBtn)
-
--- ====================================================
--- [ ระบบเครื่องมือ UI Elements (Section, Toggle, Slider) ]
--- ====================================================
-
-local function CreateSection(parent, titleText)
-    local SectionFrame = Instance.new("Frame")
-    SectionFrame.Size = UDim2.new(0.95, 0, 0, 40)
-    SectionFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
-    SectionFrame.BackgroundTransparency = 0.2
-    SectionFrame.BorderSizePixel = 0
-    SectionFrame.Parent = parent
-    
-    local SectionCorner = Instance.new("UICorner")
-    SectionCorner.CornerRadius = UDim.new(0, 8)
-    SectionCorner.Parent = SectionFrame
-    
-    local SectionStroke = Instance.new("UIStroke")
-    SectionStroke.Thickness = 1
-    SectionStroke.Color = Color3.fromRGB(35, 40, 58)
-    SectionStroke.Parent = SectionFrame
-    
-    local HeaderLabel = Instance.new("TextLabel")
-    HeaderLabel.Size = UDim2.new(1, -20, 0, 32)
-    HeaderLabel.Position = UDim2.new(0, 12, 0, 0)
-    HeaderLabel.BackgroundTransparency = 1
-    HeaderLabel.Text = titleText
-    HeaderLabel.TextColor3 = Color3.fromRGB(240, 240, 245)
-    HeaderLabel.Font = Enum.Font.GothamBold
-    HeaderLabel.TextSize = 10
-    HeaderLabel.TextXAlignment = Enum.TextXAlignment.Left
-    HeaderLabel.Parent = SectionFrame
-    
-    local ContentHolder = Instance.new("Frame")
-    ContentHolder.Name = "Holder"
-    ContentHolder.Size = UDim2.new(1, 0, 1, -32)
-    ContentHolder.Position = UDim2.new(0, 0, 0, 32)
-    ContentHolder.BackgroundTransparency = 1
-    ContentHolder.Parent = SectionFrame
-    
-    local HolderLayout = Instance.new("UIListLayout")
-    HolderLayout.Padding = UDim.new(0, 8)
-    HolderLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    HolderLayout.Parent = ContentHolder
-    
-    HolderLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        SectionFrame.Size = UDim2.new(0.95, 0, 0, HolderLayout.AbsoluteContentSize.Y + 42)
-    end)
-    
-    return ContentHolder
-end
-
-local function CreateToggle(parent, title, desc, defaultValue, callback)
-    local ToggleFrame = Instance.new("Frame")
-    ToggleFrame.Size = UDim2.new(0.95, 0, 0, 42)
-    ToggleFrame.BackgroundTransparency = 1
-    ToggleFrame.Parent = parent
-    
-    local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Size = UDim2.new(0.7, 0, 0, 22)
-    TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Text = title
-    TitleLabel.TextColor3 = Color3.fromRGB(230, 230, 235)
-    TitleLabel.Font = Enum.Font.GothamSemibold
-    TitleLabel.TextSize = 10
-    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    TitleLabel.Parent = ToggleFrame
-    
-    local DescLabel = Instance.new("TextLabel")
-    DescLabel.Size = UDim2.new(0.7, 0, 0, 15)
-    DescLabel.Position = UDim2.new(0, 0, 0, 20)
-    DescLabel.BackgroundTransparency = 1
-    DescLabel.Text = desc
-    DescLabel.TextColor3 = Color3.fromRGB(120, 125, 140)
-    DescLabel.Font = Enum.Font.Gotham
-    DescLabel.TextSize = 8
-    DescLabel.TextXAlignment = Enum.TextXAlignment.Left
-    DescLabel.Parent = ToggleFrame
-    
-    local SwitchBtn = Instance.new("TextButton")
-    SwitchBtn.Size = UDim2.new(0, 38, 0, 18)
-    SwitchBtn.Position = UDim2.new(1, -42, 0.5, -9)
-    SwitchBtn.BackgroundColor3 = defaultValue and Color3.fromRGB(80, 110, 250) or Color3.fromRGB(40, 45, 60)
-    SwitchBtn.Text = ""
-    SwitchBtn.AutoButtonColor = false
-    SwitchBtn.Parent = ToggleFrame
-    
-    local SwitchCorner = Instance.new("UICorner")
-    SwitchCorner.CornerRadius = UDim.new(1, 0)
-    SwitchCorner.Parent = SwitchBtn
-    
-    local Knob = Instance.new("Frame")
-    Knob.Size = UDim2.new(0, 14, 0, 14)
-    Knob.Position = defaultValue and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
-    Knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Knob.BorderSizePixel = 0
-    Knob.Parent = SwitchBtn
-    
-    local KnobCorner = Instance.new("UICorner")
-    KnobCorner.CornerRadius = UDim.new(1, 0)
-    KnobCorner.Parent = Knob
-    
-    local state = defaultValue
-    SwitchBtn.MouseButton1Click:Connect(function()
-        state = not state
-        local targetPos = state and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
-        local targetColor = state and Color3.fromRGB(80, 110, 250) or Color3.fromRGB(40, 45, 60)
-        
-        TweenService:Create(Knob, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = targetPos}):Play()
-        TweenService:Create(SwitchBtn, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
-        
-        callback(state)
+        active = not active
+        Btn.Text = active and "ON" or "OFF"
+        Btn.BackgroundColor3 = active and Color3.fromRGB(80, 110, 250) or Color3.fromRGB(40, 45, 60)
+        callback(active)
     end)
 end
 
-local function CreateSlider(parent, title, min, max, default, callback)
+local function AddSlider(parent, title, min, max, default, callback)
     local SliderFrame = Instance.new("Frame")
-    SliderFrame.Size = UDim2.new(0.95, 0, 0, 45)
+    SliderFrame.Size = UDim2.new(0.95, 0, 0, 40)
     SliderFrame.BackgroundTransparency = 1
     SliderFrame.Parent = parent
     
     local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Size = UDim2.new(0.7, 0, 0, 18)
+    TitleLabel.Size = UDim2.new(0.7, 0, 0, 15)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Text = title
     TitleLabel.TextColor3 = Color3.fromRGB(190, 195, 210)
     TitleLabel.Font = Enum.Font.GothamSemibold
-    TitleLabel.TextSize = 10
+    TitleLabel.TextSize = 9
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     TitleLabel.Parent = SliderFrame
     
     local ValueLabel = Instance.new("TextLabel")
-    ValueLabel.Size = UDim2.new(0.25, 0, 0, 18)
+    ValueLabel.Size = UDim2.new(0.25, 0, 0, 15)
     ValueLabel.Position = UDim2.new(0.75, 0, 0, 0)
     ValueLabel.BackgroundTransparency = 1
     ValueLabel.Text = tostring(default)
     ValueLabel.TextColor3 = Color3.fromRGB(80, 110, 250)
     ValueLabel.Font = Enum.Font.GothamBold
-    ValueLabel.TextSize = 10
+    ValueLabel.TextSize = 9
     ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
     ValueLabel.Parent = SliderFrame
     
     local SliderBar = Instance.new("Frame")
     SliderBar.Size = UDim2.new(1, 0, 0, 4)
-    SliderBar.Position = UDim2.new(0, 0, 0, 28)
+    SliderBar.Position = UDim2.new(0, 0, 0, 22)
     SliderBar.BackgroundColor3 = Color3.fromRGB(35, 40, 55)
-    SliderBar.BorderSizePixel = 0
     SliderBar.Parent = SliderFrame
-    
-    local BarCorner = Instance.new("UICorner")
-    BarCorner.Parent = SliderBar
     
     local Fill = Instance.new("Frame")
     Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
     Fill.BackgroundColor3 = Color3.fromRGB(80, 110, 250)
-    Fill.BorderSizePixel = 0
     Fill.Parent = SliderBar
     
-    local FillCorner = Instance.new("UICorner")
-    FillCorner.Parent = Fill
-    
     local Knob = Instance.new("Frame")
-    Knob.Size = UDim2.new(0, 10, 0, 10)
-    Knob.Position = UDim2.new((default - min) / (max - min), -5, 0.5, -5)
+    Knob.Size = UDim2.new(0, 8, 0, 8)
+    Knob.Position = UDim2.new((default - min) / (max - min), -4, 0.5, -4)
     Knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Knob.BorderSizePixel = 0
     Knob.Parent = SliderBar
-    
-    local KnobCorner = Instance.new("UICorner")
-    KnobCorner.CornerRadius = UDim.new(1, 0)
-    KnobCorner.Parent = Knob
     
     local Trigger = Instance.new("TextButton")
     Trigger.Size = UDim2.new(1, 0, 1, 0)
@@ -515,14 +322,9 @@ local function CreateSlider(parent, title, min, max, default, callback)
     Trigger.Parent = SliderBar
     
     local function UpdateSlider(input)
-        local inputX = input.Position.X
-        local barX = SliderBar.AbsolutePosition.X
-        local barWidth = SliderBar.AbsoluteSize.X
-        local percentage = math.clamp((inputX - barX) / barWidth, 0, 1)
-        
+        local percentage = math.clamp((input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
         Fill.Size = UDim2.new(percentage, 0, 1, 0)
-        Knob.Position = UDim2.new(percentage, -5, 0.5, -5)
-        
+        Knob.Position = UDim2.new(percentage, -4, 0.5, -4)
         local val = math.round(min + (percentage * (max - min)))
         ValueLabel.Text = tostring(val)
         callback(val)
@@ -531,17 +333,14 @@ local function CreateSlider(parent, title, min, max, default, callback)
     local dragging = false
     Trigger.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            UpdateSlider(input)
+            dragging = true UpdateSlider(input)
         end
     end)
-    
     UserInputService.InputChanged:Connect(function(input)
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             UpdateSlider(input)
         end
     end)
-    
     UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = false
@@ -549,146 +348,74 @@ local function CreateSlider(parent, title, min, max, default, callback)
     end)
 end
 
--- --- PAGE 1: USER CONTROLS ---
-local UserSec = CreateSection(PageUser, "LocalPlayer (ฟังก์ชันผู้เล่น)")
+-- [ ประกอบอุปกรณ์ลงในหน้าต่างๆ ของเมนู ]
 
-CreateSlider(UserSec, "Speed (ปรับความเร็ว)", 16, 150, 16, function(val)
-    States.SpeedValue = val
+-- หน้าผู้เล่น (User Page)
+AddSlider(PageUser, "Speed (ปรับความเร็วตัวละคร)", 16, 150, 16, function(val) States.SpeedValue = val end)
+AddSlider(PageUser, "Jump Power (ความสูงกระโดด)", 50, 200, 50, function(val) States.JumpPowerValue = val end)
+
+AddToggle(PageUser, "Infinity Stamina & Sanity", getgenv().InfiniteStaminaActive, function(state)
+    getgenv().InfiniteStaminaActive = state
 end)
 
-CreateSlider(UserSec, "JumpPower (พลังกระโดด)", 50, 200, 50, function(val)
-    States.JumpPowerValue = val
-end)
+AddToggle(PageUser, "Noclip (เดินทะลุกำแพง)", false, function(state) States.NoclipActive = state end)
 
-CreateToggle(UserSec, "Noclip (เดินทะลุกำแพง)", "ทำให้ตัวละครสามารถเดินทะลุกำแพงสิ่งกีดขวางได้", false, function(state)
-    States.NoclipActive = state
-end)
-
-CreateToggle(UserSec, "Unlock Third Person", "ขยายพิกัดระยะการซูมออกของมุมมองบุคคลที่สาม", false, function(state)
+AddToggle(PageUser, "Unlock Third Person (ซูมมุมมองไกล)", false, function(state)
     States.UnlockThirdPerson = state
-    if state then
-        LocalPlayer.CameraMaxZoomDistance = 500
-    else
-        LocalPlayer.CameraMaxZoomDistance = 30
-    end
+    LocalPlayer.CameraMaxZoomDistance = state and 500 or 30
 end)
 
--- หมวดหมู่พลังชีวิตและสมอง (Bypass Engine)
-local StaminaSec = CreateSection(PageUser, "Bypass Engine (ระบบสมองและค่าความเหนื่อยล้า)")
+-- หน้าช่วยฟาร์ม (Auto Page)
+AddToggle(PageAuto, "Auto Treat Animals (รักษาสัตว์ออโต้)", false, function(state) States.AutoTreatActive = state end)
+AddToggle(PageAuto, "Auto Stamp Form (ปั๊มตรากระดาษม่วง)", false, function(state) States.AutoStampActive = state end)
+AddToggle(PageAuto, "Block Game Popups (บล็อกแจ้งเตือนเด้งกวนใจ)", false, function(state) ToggleGameNotifications(state) end)
+AddToggle(PageAuto, "Log Notifications to F9 Console", false, function(state) States.LogNotifications = state end)
 
-CreateToggle(StaminaSec, "Infinite Stamina & Sanity (สตามิน่าและสมองไม่ลด)", "เปิดระบบดักจับ 'Job Stress' เพื่อไม่ให้สตามิน่าและสมองลดลงตลอดการฟาร์ม", false, function(state)
-    States.InfiniteStamina = state
-    
-    local notifyText = state and "เปิดระบบป้องกันการเหนื่อยล้าสูงสุดแล้ว!" or "ยกเลิกการบล็อกสัญญาณ"
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "Foxname Hub",
-        Text = notifyText,
-        Duration = 3
-    })
-end)
-
--- --- PAGE 2: AUTO HOSPITAL ---
-local AutoHospitalSec = CreateSection(PageAuto, "ระบบช่วยฟาร์มและบริการทำเควสต์อัตโนมัติ")
-
-CreateToggle(AutoHospitalSec, "Auto Treatment (รักษาและทำความสะอาดสัตว์ออโต้)", "ตรวจจับสัตว์เลี้ยงเป้าหมายที่อยู่รอบตัวคุณแล้วกดรักษากดชำระล้างอัตโนมัติ", false, function(state)
-    States.AutoTreatActive = state
-end)
-
-CreateToggle(AutoHospitalSec, "Auto Stamp Form (สแตมป์แบบฟอร์มอัตโนมัติ)", "ตรวจหาแบบฟอร์มกระดาษสีม่วงที่เคาน์เตอร์แล้วสแตมป์ประทับตราอัตโนมัติ", false, function(state)
-    States.AutoStampActive = state
-end)
-
--- ระบบดักจับแจ้งเตือนป๊อปอัพ RE/Notify
-local NotifySec = CreateSection(PageAuto, "ระบบดักจับแจ้งเตือนป๊อปอัพเกม (RE/Notify)")
-
-CreateToggle(NotifySec, "Block Game Popups (บล็อกแจ้งเตือนเด้งกวนหน้าจอ)", "ปิดป๊อปอัพแจ้งเตือนของตัวเกมทั้งหมด เพื่อไม่ให้สแปมรกหน้าจอขณะฟาร์ม", false, function(state)
-    ToggleGameNotifications(state)
-end)
-
-CreateToggle(NotifySec, "Log Notifications to F9 Console", "ดักฟังข้อความแล้วนำมาบันทึกเป็นประวัติเก็บไว้ใน Console แทนการเด้งขึ้นจอ", false, function(state)
-    States.LogNotifications = state
-end)
-
--- --- PAGE 3: CREDIT ---
-local CreditSec = CreateSection(PageCredit, "ข้อมูลผู้พัฒนาและการถอดรหัส")
-
-local InfoLabel = Instance.new("TextLabel")
-InfoLabel.Size = UDim2.new(0.95, 0, 0, 120)
-InfoLabel.BackgroundTransparency = 1
-InfoLabel.Text = "🎨 หน้าต่างเมนู Foxname Hub สวยงามแบบ Navy Glass\n⚡ พัฒนาระบบส่งสัญญาณหลอก (Spoofing) ผ่าน 'Job Stress' Bypass\n\nเปิดใช้งานได้อย่างปลอดภัยและรันได้อย่างเสถียร!"
-InfoLabel.TextColor3 = Color3.fromRGB(170, 175, 190)
-InfoLabel.Font = Enum.Font.GothamSemibold
-InfoLabel.TextSize = 10
-InfoLabel.Parent = CreditSec
-
--- ====================================================
--- [ ลูปเบื้องหลัง (Background Runtime Engine) ]
--- ====================================================
-
--- 1. ลูปตรวจสอบ Attributes และทิศทางความเร็วแบบเรียลไทม์
+-- [ ลูปทำงานเบื้องหลังสำหรับความเร็ว/กระโดด/ทะลุกำแพง ]
 RunService.Heartbeat:Connect(function()
     local Character = LocalPlayer.Character
     if Character then
         local RootPart = Character:FindFirstChild("HumanoidRootPart")
         local Humanoid = Character:FindFirstChildOfClass("Humanoid")
-        
-        -- ปรับแต่งความเร็วโดยเลี่ยงการเตะ (AssemblyLinearVelocity)
         if Humanoid and RootPart and Humanoid.MoveDirection.Magnitude > 0 and States.SpeedValue > 16 then
             local vel = Humanoid.MoveDirection * (States.SpeedValue - 16)
             RootPart.AssemblyLinearVelocity = Vector3.new(vel.X, RootPart.AssemblyLinearVelocity.Y, vel.Z)
         end
-        
-        -- ปรับปรุงพละกำลังการกระโดด
-        if Humanoid and States.JumpPowerValue > 50 then
-            Humanoid.JumpPower = States.JumpPowerValue
-        end
-        
-        -- รันระบบ CanCollide เคลื่อนที่ทะลุกำแพง
+        if Humanoid and States.JumpPowerValue > 50 then Humanoid.JumpPower = States.JumpPowerValue end
         if States.NoclipActive then
             for _, part in ipairs(Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
+                if part:IsA("BasePart") then part.CanCollide = false end
             end
         end
     end
 end)
 
--- 2. สั่งรันลูปออโต้ฟาร์มภารกิจรอบข้างเป็นระยะ
+-- ลูปการทำงานฟาร์มอัตโนมัติ
 task.spawn(function()
     while true do
-        task.wait(0.2)
-        if States.AutoTreatActive then
-            AutoInteractWithAnimals()
-        end
-        if States.AutoStampActive then
-            AutoStampForm()
-        end
+        task.wait(0.25)
+        if States.AutoTreatActive then AutoInteractWithAnimals() end
+        if States.AutoStampActive then AutoStampForm() end
     end
 end)
 
--- ====================================================
--- [ ปุ่มย่อ/ขยายหน้าต่างเมนูกลมสีดำลอยได้ ]
--- ====================================================
-local CloseOpenButton = Instance.new("TextButton")
-CloseOpenButton.Size = UDim2.new(0, 45, 0, 45)
-CloseOpenButton.Position = UDim2.new(0.05, 0, 0.15, 0)
-CloseOpenButton.BackgroundColor3 = Color3.fromRGB(15, 17, 26)
-CloseOpenButton.Text = "FOX"
-CloseOpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseOpenButton.Font = Enum.Font.GothamBold
-CloseOpenButton.TextSize = 10
-CloseOpenButton.Parent = ScreenGui
+-- ปุ่มย่อหน้าต่างกลมสีดำลอยได้
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Size = UDim2.new(0, 40, 0, 40)
+MinimizeBtn.Position = UDim2.new(0.05, 0, 0.2, 0)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(15, 18, 28)
+MinimizeBtn.Text = "FOX"
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.TextSize = 10
+MinimizeBtn.Parent = ScreenGui
 
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(1, 0)
-CloseCorner.Parent = CloseOpenButton
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(1, 0)
+MinCorner.Parent = MinimizeBtn
 
-local CloseStroke = Instance.new("UIStroke")
-CloseStroke.Thickness = 1
-CloseStroke.Color = Color3.fromRGB(50, 55, 75)
-CloseStroke.Parent = CloseOpenButton
-
-CloseOpenButton.MouseButton1Click:Connect(function()
+MinimizeBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
+
+print("[Part 2]: หน้าต่างเมนูคุมความเร็ว, ฟาร์ม และแจ้งเตือนรันสำเร็จ!")
