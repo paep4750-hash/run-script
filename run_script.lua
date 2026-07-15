@@ -1,5 +1,5 @@
 -- ====================================================
--- FOXNAME HUB v6 (NAVY GLASS) - PART 1: CORE ENGINE
+-- FOXNAME HUB v6 (NAVY GLASS) - PART 1: CORE ENGINE (TRUE INF)
 -- ====================================================
 
 getgenv().InfiniteStaminaActive = true
@@ -39,30 +39,32 @@ local hookSuccess, hookError = pcall(function()
     end)
 end)
 
--- 2. ลูปตรวจสอบล็อกหลอดในเครื่อง (Stamina & Sanity)
+-- 2. ลูปตรวจสอบล็อกหลอดในเครื่อง (ปรับเป็น math.huge หรือ Infinity ของจริง)
 task.spawn(function()
     while task.wait(0.1) do
         if getgenv().InfiniteStaminaActive then
             pcall(function()
                 local Character = LocalPlayer.Character
+                -- ใช้ math.huge เพื่อให้ค่ากลายเป็น Infinity จริงๆ ในระบบ
+                local InfValue = math.huge 
+                
                 if Character then
-                    if Character:GetAttribute("Stamina") then Character:SetAttribute("Stamina", 100) end
-                    if Character:GetAttribute("Sanity") then Character:SetAttribute("Sanity", 100) end
-                    if LocalPlayer:GetAttribute("Stamina") then LocalPlayer:SetAttribute("Stamina", 100) end
-                    if LocalPlayer:GetAttribute("Sanity") then LocalPlayer:SetAttribute("Sanity", 100) end
+                    if Character:GetAttribute("Stamina") then Character:SetAttribute("Stamina", InfValue) end
+                    if Character:GetAttribute("Sanity") then Character:SetAttribute("Sanity", InfValue) end
+                    if LocalPlayer:GetAttribute("Stamina") then LocalPlayer:SetAttribute("Stamina", InfValue) end
+                    if LocalPlayer:GetAttribute("Sanity") then LocalPlayer:SetAttribute("Sanity", InfValue) end
                 end
             end)
         end
     end
 end)
 
--- 3. [อัปเดต] ระบบ Spoof Stats - เปลี่ยนค่าเงิน Cash เป็น 999
+-- 3. ระบบ Spoof Stats - ค่าเงิน Cash = 999
 local statsConnection
 pcall(function()
     statsConnection = StatsEvent.OnClientEvent:Connect(function(actionType, statsTable, updateField, extraData)
         if getgenv().States.SpoofStatsActive and actionType == "Stats" and type(statsTable) == "table" then
-            -- แก้ไขค่าพลังและสถิติตามโครงสร้างใหม่
-            statsTable.Cash = 999 -- ปรับเป็น 999 ตามที่สั่งเรียบร้อยครับ
+            statsTable.Cash = 999
             statsTable.LocalCash = 0
             statsTable.PatientsCheckedIn = 999
             statsTable.PatientsTreated = 999
@@ -70,7 +72,6 @@ pcall(function()
             statsTable.GamesStarted = 99
             statsTable.Class = "Nurse"
             
-            -- โครงสร้างตารางภายใน
             statsTable.ClassXP = { Nurse = 9999, Intern = 9999 }
             statsTable.UnlockedClasses = { Nurse = true, Intern = true, Doctor = true }
             statsTable.Settings = statsTable.Settings or { EpilepsyMode = false }
@@ -80,7 +81,8 @@ pcall(function()
     end)
 end)
 
-print("[Part 1]: อัปเดตการแปลงค่า Cash = 999 และโครงสร้างตารางใหม่เรียบร้อย!")
+print("[Part 1]: อัปเดตระบบล็อกหลอดสมอง/พลังงานเป็น Infinity (math.huge) เรียบร้อยแล้ว!")
+
 
 -- ====================================================
 -- FOXNAME HUB v6 (NAVY GLASS) - PART 2: UI & FULL AUTOMATION
