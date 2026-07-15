@@ -1,93 +1,8 @@
 -- ====================================================
--- FOXNAME HUB v6 (NAVY GLASS) - PART 1: CORE ENGINE (TRUE INF)
--- ====================================================
-
-getgenv().InfiniteStaminaActive = true
-
-getgenv().States = {
-    CurrentTab = "User",
-    SpeedValue = 16,
-    JumpPowerValue = 50,
-    NoclipActive = false,
-    UnlockThirdPerson = false,
-    AutoTreatActive = false,
-    AutoStampActive = false,
-    BlockNotifications = false,
-    LogNotifications = false,
-    SpoofStatsActive = false
-}
-
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
-
-local Net = ReplicatedStorage:WaitForChild("Util"):WaitForChild("Net")
-local PlayerLostSanity = Net:WaitForChild("RE/PlayerLostSanity")
-local StatsEvent = Net:WaitForChild("RE/Stats")
-
--- 1. บล็อกข้อมูลความเหนื่อยล้าฝั่ง Server
-local hookSuccess, hookError = pcall(function()
-    local oldNamecall
-    oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-        local method = getnamecallmethod()
-        if self == PlayerLostSanity and (method == "FireServer" or method == "fireServer") then
-            if getgenv().InfiniteStaminaActive then
-                return nil
-            end
-        end
-        return oldNamecall(self, ...)
-    end)
-end)
-
--- 2. ลูปตรวจสอบล็อกหลอดในเครื่อง (ปรับเป็น math.huge หรือ Infinity ของจริง)
-task.spawn(function()
-    while task.wait(0.1) do
-        if getgenv().InfiniteStaminaActive then
-            pcall(function()
-                local Character = LocalPlayer.Character
-                -- ใช้ math.huge เพื่อให้ค่ากลายเป็น Infinity จริงๆ ในระบบ
-                local InfValue = math.huge 
-                
-                if Character then
-                    if Character:GetAttribute("Stamina") then Character:SetAttribute("Stamina", InfValue) end
-                    if Character:GetAttribute("Sanity") then Character:SetAttribute("Sanity", InfValue) end
-                    if LocalPlayer:GetAttribute("Stamina") then LocalPlayer:SetAttribute("Stamina", InfValue) end
-                    if LocalPlayer:GetAttribute("Sanity") then LocalPlayer:SetAttribute("Sanity", InfValue) end
-                end
-            end)
-        end
-    end
-end)
-
--- 3. ระบบ Spoof Stats - ค่าเงิน Cash = 999
-local statsConnection
-pcall(function()
-    statsConnection = StatsEvent.OnClientEvent:Connect(function(actionType, statsTable, updateField, extraData)
-        if getgenv().States.SpoofStatsActive and actionType == "Stats" and type(statsTable) == "table" then
-            statsTable.Cash = 999
-            statsTable.LocalCash = 0
-            statsTable.PatientsCheckedIn = 999
-            statsTable.PatientsTreated = 999
-            statsTable.HighestShift = 99
-            statsTable.GamesStarted = 99
-            statsTable.Class = "Nurse"
-            
-            statsTable.ClassXP = { Nurse = 9999, Intern = 9999 }
-            statsTable.UnlockedClasses = { Nurse = true, Intern = true, Doctor = true }
-            statsTable.Settings = statsTable.Settings or { EpilepsyMode = false }
-            statsTable.UnlockedSkins = statsTable.UnlockedSkins or {}
-            statsTable.EquippedSkins = statsTable.EquippedSkins or {}
-        end
-    end)
-end)
-
-print("[Part 1]: อัปเดตระบบล็อกหลอดสมอง/พลังงานเป็น Infinity (math.huge) เรียบร้อยแล้ว!")
-
-
--- ====================================================
 -- FOXNAME HUB v6 (NAVY GLASS) - PART 2: UI & FULL AUTOMATION
 -- ====================================================
 
+-- [ SUB-PART 2.1: STATE CONFIGURATION ]
 local States = getgenv().States or {
     CurrentTab = "User",
     SpeedValue = 16,
@@ -96,7 +11,8 @@ local States = getgenv().States or {
     UnlockThirdPerson = false,
     AutoTreatActive = false,
     AutoStampActive = false,
-    AutoObjectiveActive = false, -- ฟังก์ชันใหม่: สวิตช์ออโต้ภารกิจเช็คอิน
+    AutoObjectiveActive = false,
+    EspActive = false,
     BlockNotifications = false,
     LogNotifications = false,
     SpoofStatsActive = false
@@ -113,7 +29,10 @@ local StatsEvent = Net:WaitForChild("RE/Stats")
 local NotifyRemote = Net:WaitForChild("RE/Notify")
 local SetObjectiveEvent = Net:WaitForChild("RE/SetObjective")
 
--- [ ฟังก์ชันระบบความปลอดภัยและการแจ้งเตือน ]
+-- ====================================================
+-- [ SUB-PART 2.2: SECURITY & ESP UTILITIES ]
+-- ====================================================
+
 local notifyConnection = nil
 pcall(function()
     notifyConnection = NotifyRemote.OnClientEvent:Connect(function(...)
@@ -135,8 +54,38 @@ local function ToggleGameNotifications(block)
     end
 end
 
+local function ClearEsp()
+    local NPCs = workspace:FindFirstChild("NPCs")
+    if NPCs then
+        for _, npc in ipairs(NPCs:GetChildren()) do
+            if npc:FindFirstChild("FoxEspHighlight") then
+                npc.FoxEspHighlight:Destroy()
+            end
+        end
+    end
+end
+
+local function RunEsp()
+    if not States.EspActive then return end
+    local NPCs = workspace:FindFirstChild("NPCs")
+    if NPCs then
+        for _, npc in ipairs(NPCs:GetChildren()) do
+            if (npc:IsA("Model") or npc:IsA("BasePart")) and not npc:FindFirstChild("FoxEspHighlight") then
+                local h = Instance.new("Highlight")
+                h.Name = "FoxEspHighlight"
+                h.Adornee = npc
+                h.FillColor = Color3.fromRGB(0, 255, 255)
+                h.OutlineColor = Color3.fromRGB(255, 255, 255)
+                h.OutlineTransparency = 0
+                h.FillTransparency = 0.5
+                h.Parent = npc
+            end
+        end
+    end
+end
+
 -- ====================================================
--- [ CORE AUTOMATION SYSTEMS (ระบบทำงานอัตโนมัติ) ]
+-- [ SUB-PART 2.3: CORE AUTOMATION SYSTEMS ]
 -- ====================================================
 
 -- 1. บอทรักษาสัตว์อัตโนมัติ
@@ -170,33 +119,60 @@ local function AutoStampForm()
     end
 end
 
--- 3. [ฟังก์ชันอัปเดตใหม่] บอททำภารกิจเช็คอินด่วน 3 ขั้นตอนอัตโนมัติแบบลูปวนลูป
+-- 3. บอททำภารกิจเช็คอิน รักษาสัตว์ และวิเคราะห์ผลตรวจอัตโนมัติ
 local function AutoCompleteObjectives()
     if not States.AutoObjectiveActive then return end
     pcall(function()
         local Misc = workspace:FindFirstChild("Misc")
         local CheckIn = Misc and Misc:FindFirstChild("CheckIn")
+        local NPCs = workspace:FindFirstChild("NPCs")
+        local Rooms = workspace:FindFirstChild("Rooms")
         
+        local RevealPhotoEvent = game:GetService("ReplicatedStorage").Util.Net:FindFirstChild("RE/RevealPhoto")
+        local PlayCutsceneEvent = game:GetService("ReplicatedStorage").Util.Net:FindFirstChild("RE/PlayCutscene")
+        
+        -- === PART A: เช็คอินด่วน 3 ขั้นตอน ===
         if CheckIn then
-            -- ขั้นตอนที่ 1: Register PC
-            if CheckIn:FindFirstChild("Computer") then
-                firesignal(SetObjectiveEvent.OnClientEvent, "Register in PC", nil, CheckIn.Computer)
+            if CheckIn:FindFirstChild("Computer") then firesignal(SetObjectiveEvent.OnClientEvent, "Register in PC", nil, CheckIn.Computer) end
+            if CheckIn:FindFirstChild("Camera") then firesignal(SetObjectiveEvent.OnClientEvent, "Take a photo", nil, CheckIn.Camera) end
+            if CheckIn:FindFirstChild("Printer") then firesignal(SetObjectiveEvent.OnClientEvent, "Print Badge", nil, CheckIn.Printer) end
+        end
+        
+        -- === PART B: จัดการคนไข้ & คัตซีน ===
+        if NPCs then
+            for _, patient in ipairs(NPCs:GetChildren()) do
+                if patient:IsA("Model") or patient:IsA("BasePart") then
+                    if PlayCutsceneEvent then
+                        firesignal(PlayCutsceneEvent.OnClientEvent, "VisitorArrived", patient, true, nil)
+                    end
+                    if RevealPhotoEvent and CheckIn then
+                        firesignal(RevealPhotoEvent.OnClientEvent, CheckIn, patient)
+                    end
+                    firesignal(SetObjectiveEvent.OnClientEvent, "Follow the patient to their room", nil, patient)
+                    firesignal(SetObjectiveEvent.OnClientEvent, "Take sample from patient in Room 1", nil, patient)
+                    firesignal(SetObjectiveEvent.OnClientEvent, "Take sample from patient in Room 2", nil, patient)
+                    firesignal(SetObjectiveEvent.OnClientEvent, "Take sample from patient in Room 3", nil, patient)
+                end
             end
-            -- ขั้นตอนที่ 2: Take a photo
-            if CheckIn:FindFirstChild("Camera") then
-                firesignal(SetObjectiveEvent.OnClientEvent, "Take a photo", nil, CheckIn.Camera)
-            end
-            -- ขั้นตอนที่ 3: Print Badge
-            if CheckIn:FindFirstChild("Printer") then
-                firesignal(SetObjectiveEvent.OnClientEvent, "Print Badge", nil, CheckIn.Printer)
+        end
+
+        -- === PART C: วิเคราะห์ผลตรวจอัตโนมัติ ===
+        if Rooms and Rooms:FindFirstChild("Medical") then
+            for _, room in ipairs(Rooms.Medical:GetChildren()) do
+                local Minigame = room:FindFirstChild("Minigame")
+                local Analyzer = Minigame and Minigame:FindFirstChild("Analyzer")
+                if Analyzer then
+                    firesignal(SetObjectiveEvent.OnClientEvent, "Analyze the sample", nil, Analyzer)
+                end
             end
         end
     end)
 end
 
 -- ====================================================
--- [ สร้างหน้าต่างเมนู NAVY GLASS UI ]
+-- [ SUB-PART 2.4: GUI NAVY GLASS DESIGN ]
 -- ====================================================
+
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "FoxnameHospitalUI_v6_Final"
 ScreenGui.ResetOnSpawn = false
@@ -299,7 +275,10 @@ AddTabBtn("👤 Player Specs", "User")
 AddTabBtn("🏥 Auto Hospital", "Auto")
 SwitchTab("User")
 
--- [ เครื่องมือสร้างสลัก UI ]
+-- ====================================================
+-- [ SUB-PART 2.5: UI COMPONENTS & INTERACTION ]
+-- ====================================================
+
 local function AddToggle(parent, txt, default, callback)
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(0.95, 0, 0, 35)
@@ -416,40 +395,26 @@ local function AddSlider(parent, title, min, max, default, callback)
     end)
 end
 
--- === แท็บที่ 1: USER CONTROLS (👤 Player Specs) ===
+-- === ผูกคอมโพเนนต์เข้ากับหน้า USER CONTROLS ===
 AddSlider(PageUser, "Speed (ปรับความเร็วตัวละคร)", 16, 150, 16, function(val) States.SpeedValue = val end)
 AddSlider(PageUser, "Jump Power (ความสูงกระโดด)", 50, 200, 50, function(val) States.JumpPowerValue = val end)
-
-AddToggle(PageUser, "Infinity Stamina & Sanity", getgenv().InfiniteStaminaActive, function(state)
-    getgenv().InfiniteStaminaActive = state
-end)
-
+AddToggle(PageUser, "Infinity Stamina & Sanity", getgenv().InfiniteStaminaActive, function(state) getgenv().InfiniteStaminaActive = state end)
 AddToggle(PageUser, "Noclip (เดินทะลุกำแพง)", false, function(state) States.NoclipActive = state end)
+AddToggle(PageUser, "Unlock Third Person (ซูมมุมมองไกล)", false, function(state) States.UnlockThirdPerson = state LocalPlayer.CameraMaxZoomDistance = state and 500 or 30 end)
+AddToggle(PageUser, "Spoof Stats (จำลองเงิน & สถิติ)", false, function(state) States.SpoofStatsActive = state if state then pcall(function() firesignal(StatsEvent.OnClientEvent, "Stats", {}, "PatientsCheckedIn", nil) end) end end)
 
-AddToggle(PageUser, "Unlock Third Person (ซูมมุมมองไกล)", false, function(state)
-    States.UnlockThirdPerson = state
-    LocalPlayer.CameraMaxZoomDistance = state and 500 or 30
-end)
-
-AddToggle(PageUser, "Spoof Stats (จำลองเงิน & สถิติ)", false, function(state)
-    States.SpoofStatsActive = state
-    if state then
-        pcall(function()
-            firesignal(StatsEvent.OnClientEvent, "Stats", {}, "PatientsCheckedIn", nil)
-        end)
-    end
-end)
-
--- === แท็บที่ 2: AUTO CONTROLS (🏥 Auto Hospital) ===
--- [ระบบสลับออโต้ฟาร์มภารกิจตัวใหม่ที่คุณต้องการ]
-AddToggle(PageAuto, "Auto Complete Objectives (ทำภารกิจด่วนออโต้)", false, function(state) States.AutoObjectiveActive = state end)
-
+-- === ผูกคอมโพเนนต์เข้ากับหน้า AUTO CONTROLS ===
+AddToggle(PageAuto, "NPC Scanner (ESP สแกนคนไข้)", false, function(state) States.EspActive = state if not state then ClearEsp() end end)
+AddToggle(PageAuto, "Auto Complete Objectives (ฟาร์มเควสออโต้)", false, function(state) States.AutoObjectiveActive = state end)
 AddToggle(PageAuto, "Auto Treat Animals (รักษาสัตว์ออโต้)", false, function(state) States.AutoTreatActive = state end)
 AddToggle(PageAuto, "Auto Stamp Form (ปั๊มตรากระดาษม่วง)", false, function(state) States.AutoStampActive = state end)
-AddToggle(PageAuto, "Block Game Popups (บล็อกแจ้งเตือนเด้งกวนใจ)", false, function(state) ToggleGameNotifications(state) end)
+AddToggle(PageAuto, "Block Game Popups (บล็อกแจ้งเตือนเกม)", false, function(state) ToggleGameNotifications(state) end)
 AddToggle(PageAuto, "Log Notifications to F9 Console", false, function(state) States.LogNotifications = state end)
 
--- [ ระบบวนลูปทำงานเบื้องหลังของตัวละคร ]
+-- ====================================================
+-- [ SUB-PART 2.6: RUNTIME LOOPS & CORE INIT ]
+-- ====================================================
+
 RunService.Heartbeat:Connect(function()
     local Character = LocalPlayer.Character
     if Character then
@@ -466,9 +431,9 @@ RunService.Heartbeat:Connect(function()
             end
         end
     end
+    if States.EspActive then RunEsp() end
 end)
 
--- ลูปการทำระบบฟาร์มอัตโนมัติทั้งหมดรวมกัน (ความถี่ 0.25 วินาที)
 task.spawn(function()
     while true do
         task.wait(0.25)
@@ -478,7 +443,6 @@ task.spawn(function()
     end
 end)
 
--- [ ปุ่มกลมลอยย่อหน้าต่าง ]
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Size = UDim2.new(0, 40, 0, 40)
 MinimizeBtn.Position = UDim2.new(0, 10, 0, 10)
@@ -497,4 +461,4 @@ MinimizeBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
 
-print("[Part 2]: ปรับเปลี่ยนระบบภารกิจเป็นฟาร์มอัตโนมัติ (Toggle) แบบดั้งเดิมสำเร็จ!")
+print("[Part 2]: โหลดเมนูและระบบออโต้ฟาร์มเวอร์ชันสมบูรณ์เรียบร้อยแล้ว!")
