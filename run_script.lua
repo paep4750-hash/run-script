@@ -82,9 +82,8 @@ end)
 
 print("[Part 1]: อัปเดตการแปลงค่า Cash = 999 และโครงสร้างตารางใหม่เรียบร้อย!")
 
-
 -- ====================================================
--- FOXNAME HUB v6 (NAVY GLASS) - PART 2: UI & NEW FEATURES
+-- FOXNAME HUB v6 (NAVY GLASS) - PART 2: UI & FULL AUTOMATION
 -- ====================================================
 
 local States = getgenv().States or {
@@ -95,6 +94,7 @@ local States = getgenv().States or {
     UnlockThirdPerson = false,
     AutoTreatActive = false,
     AutoStampActive = false,
+    AutoObjectiveActive = false, -- ฟังก์ชันใหม่: สวิตช์ออโต้ภารกิจเช็คอิน
     BlockNotifications = false,
     LogNotifications = false,
     SpoofStatsActive = false
@@ -133,7 +133,11 @@ local function ToggleGameNotifications(block)
     end
 end
 
--- [ ระบบบอทช่วยเหลือเดิม ]
+-- ====================================================
+-- [ CORE AUTOMATION SYSTEMS (ระบบทำงานอัตโนมัติ) ]
+-- ====================================================
+
+-- 1. บอทรักษาสัตว์อัตโนมัติ
 local function AutoInteractWithAnimals()
     if not States.AutoTreatActive then return end
     for _, prompt in ipairs(workspace:GetDescendants()) do
@@ -146,6 +150,7 @@ local function AutoInteractWithAnimals()
     end
 end
 
+-- 2. บอทปั๊มตราประทับกระดาษม่วงอัตโนมัติ
 local function AutoStampForm()
     if not States.AutoStampActive then return end
     local FormObj = workspace:FindFirstChild("Misc", true)
@@ -163,7 +168,33 @@ local function AutoStampForm()
     end
 end
 
--- [ สร้างหน้าต่างเมนู Navy Glass ]
+-- 3. [ฟังก์ชันอัปเดตใหม่] บอททำภารกิจเช็คอินด่วน 3 ขั้นตอนอัตโนมัติแบบลูปวนลูป
+local function AutoCompleteObjectives()
+    if not States.AutoObjectiveActive then return end
+    pcall(function()
+        local Misc = workspace:FindFirstChild("Misc")
+        local CheckIn = Misc and Misc:FindFirstChild("CheckIn")
+        
+        if CheckIn then
+            -- ขั้นตอนที่ 1: Register PC
+            if CheckIn:FindFirstChild("Computer") then
+                firesignal(SetObjectiveEvent.OnClientEvent, "Register in PC", nil, CheckIn.Computer)
+            end
+            -- ขั้นตอนที่ 2: Take a photo
+            if CheckIn:FindFirstChild("Camera") then
+                firesignal(SetObjectiveEvent.OnClientEvent, "Take a photo", nil, CheckIn.Camera)
+            end
+            -- ขั้นตอนที่ 3: Print Badge
+            if CheckIn:FindFirstChild("Printer") then
+                firesignal(SetObjectiveEvent.OnClientEvent, "Print Badge", nil, CheckIn.Printer)
+            end
+        end
+    end)
+end
+
+-- ====================================================
+-- [ สร้างหน้าต่างเมนู NAVY GLASS UI ]
+-- ====================================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "FoxnameHospitalUI_v6_Final"
 ScreenGui.ResetOnSpawn = false
@@ -187,7 +218,6 @@ MainStroke.Thickness = 1
 MainStroke.Color = Color3.fromRGB(45, 52, 75)
 MainStroke.Parent = MainFrame
 
--- แถบ Sidebar ข้างซ้าย
 local Sidebar = Instance.new("Frame")
 Sidebar.Size = UDim2.new(0, 150, 1, 0)
 Sidebar.BackgroundColor3 = Color3.fromRGB(10, 12, 18)
@@ -209,7 +239,6 @@ LogoLabel.TextSize = 12
 LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
 LogoLabel.Parent = Sidebar
 
--- ส่วนพื้นที่เนื้อหาขวา
 local ContentArea = Instance.new("Frame")
 ContentArea.Size = UDim2.new(1, -165, 1, -20)
 ContentArea.Position = UDim2.new(0, 155, 0, 10)
@@ -222,7 +251,7 @@ local function CreatePage(name)
     Page.Name = name .. "Page"
     Page.Size = UDim2.new(1, 0, 1, 0)
     Page.BackgroundTransparency = 1
-    Page.CanvasSize = UDim2.new(0, 0, 0, 480) -- เพิ่มพื้นที่ขยายสำหรับฟังก์ชันใหม่
+    Page.CanvasSize = UDim2.new(0, 0, 0, 400)
     Page.ScrollBarThickness = 2
     Page.ScrollBarImageColor3 = Color3.fromRGB(45, 52, 75)
     Page.Visible = false
@@ -268,7 +297,7 @@ AddTabBtn("👤 Player Specs", "User")
 AddTabBtn("🏥 Auto Hospital", "Auto")
 SwitchTab("User")
 
--- [ เครื่องมือสร้างสลัก UI (Toggle, Slider และ Button เพิ่มเข้ามาใหม่) ]
+-- [ เครื่องมือสร้างสลัก UI ]
 local function AddToggle(parent, txt, default, callback)
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(0.95, 0, 0, 35)
@@ -385,29 +414,6 @@ local function AddSlider(parent, title, min, max, default, callback)
     end)
 end
 
-local function AddButton(parent, txt, callback)
-    local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(0.95, 0, 0, 35)
-    Frame.BackgroundTransparency = 1
-    Frame.Parent = parent
-    
-    local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(0.95, 0, 0, 28)
-    Btn.Position = UDim2.new(0.025, 0, 0.5, -14)
-    Btn.BackgroundColor3 = Color3.fromRGB(35, 45, 65)
-    Btn.Text = txt
-    Btn.TextColor3 = Color3.fromRGB(245, 245, 250)
-    Btn.Font = Enum.Font.GothamSemibold
-    Btn.TextSize = 9
-    Btn.Parent = Frame
-    
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 4)
-    Corner.Parent = Btn
-    
-    Btn.MouseButton1Click:Connect(callback)
-end
-
 -- === แท็บที่ 1: USER CONTROLS (👤 Player Specs) ===
 AddSlider(PageUser, "Speed (ปรับความเร็วตัวละคร)", 16, 150, 16, function(val) States.SpeedValue = val end)
 AddSlider(PageUser, "Jump Power (ความสูงกระโดด)", 50, 200, 50, function(val) States.JumpPowerValue = val end)
@@ -433,37 +439,15 @@ AddToggle(PageUser, "Spoof Stats (จำลองเงิน & สถิติ)
 end)
 
 -- === แท็บที่ 2: AUTO CONTROLS (🏥 Auto Hospital) ===
+-- [ระบบสลับออโต้ฟาร์มภารกิจตัวใหม่ที่คุณต้องการ]
+AddToggle(PageAuto, "Auto Complete Objectives (ทำภารกิจด่วนออโต้)", false, function(state) States.AutoObjectiveActive = state end)
+
 AddToggle(PageAuto, "Auto Treat Animals (รักษาสัตว์ออโต้)", false, function(state) States.AutoTreatActive = state end)
 AddToggle(PageAuto, "Auto Stamp Form (ปั๊มตรากระดาษม่วง)", false, function(state) States.AutoStampActive = state end)
 AddToggle(PageAuto, "Block Game Popups (บล็อกแจ้งเตือนเด้งกวนใจ)", false, function(state) ToggleGameNotifications(state) end)
 AddToggle(PageAuto, "Log Notifications to F9 Console", false, function(state) States.LogNotifications = state end)
 
--- [ 🆕 ปุ่มฟังก์ชันใหม่ที่ได้จาก Cobalt (Fast Objective Tools) ]
-AddButton(PageAuto, "⚡ Instant Register PC", function()
-    pcall(function()
-        firesignal(SetObjectiveEvent.OnClientEvent, "Register in PC", nil, workspace.Misc.CheckIn.Computer)
-    end)
-end)
-
-AddButton(PageAuto, "📸 Instant Take Photo", function()
-    pcall(function()
-        firesignal(SetObjectiveEvent.OnClientEvent, "Take a photo", nil, workspace.Misc.CheckIn.Camera)
-    end)
-end)
-
-AddButton(PageAuto, "🖨️ Instant Print Badge", function()
-    pcall(function()
-        firesignal(SetObjectiveEvent.OnClientEvent, "Print Badge", nil, workspace.Misc.CheckIn.Printer)
-    end)
-end)
-
-AddButton(PageAuto, "❌ Clear/Reset Objective", function()
-    pcall(function()
-        firesignal(SetObjectiveEvent.OnClientEvent, "", nil, nil)
-    end)
-end)
-
--- [ ระบบวนลูปขยับตัวละคร ]
+-- [ ระบบวนลูปทำงานเบื้องหลังของตัวละคร ]
 RunService.Heartbeat:Connect(function()
     local Character = LocalPlayer.Character
     if Character then
@@ -482,16 +466,17 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- บอทกระซิบ
+-- ลูปการทำระบบฟาร์มอัตโนมัติทั้งหมดรวมกัน (ความถี่ 0.25 วินาที)
 task.spawn(function()
     while true do
         task.wait(0.25)
+        if States.AutoObjectiveActive then AutoCompleteObjectives() end
         if States.AutoTreatActive then AutoInteractWithAnimals() end
         if States.AutoStampActive then AutoStampForm() end
     end
 end)
 
--- [ ปุ่มกลมย่อหน้าต่าง ]
+-- [ ปุ่มกลมลอยย่อหน้าต่าง ]
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Size = UDim2.new(0, 40, 0, 40)
 MinimizeBtn.Position = UDim2.new(0, 10, 0, 10)
@@ -510,4 +495,4 @@ MinimizeBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
 
-print("[Part 2]: ประกอบเมนูปุ่มจำลองภารกิจด่วน 4 รายการเสร็จสิ้น!")
+print("[Part 2]: ปรับเปลี่ยนระบบภารกิจเป็นฟาร์มอัตโนมัติ (Toggle) แบบดั้งเดิมสำเร็จ!")
