@@ -56,22 +56,32 @@ task.spawn(function()
     end
 end)
 
--- 3. ระบบ Spoof Stats
+-- 3. [อัปเดต] ระบบ Spoof Stats - เปลี่ยนค่าเงิน Cash เป็น 999
 local statsConnection
 pcall(function()
     statsConnection = StatsEvent.OnClientEvent:Connect(function(actionType, statsTable, updateField, extraData)
         if getgenv().States.SpoofStatsActive and actionType == "Stats" and type(statsTable) == "table" then
-            statsTable.Cash = 999999
+            -- แก้ไขค่าพลังและสถิติตามโครงสร้างใหม่
+            statsTable.Cash = 999 -- ปรับเป็น 999 ตามที่สั่งเรียบร้อยครับ
+            statsTable.LocalCash = 0
             statsTable.PatientsCheckedIn = 999
             statsTable.PatientsTreated = 999
             statsTable.HighestShift = 99
+            statsTable.GamesStarted = 99
+            statsTable.Class = "Nurse"
+            
+            -- โครงสร้างตารางภายใน
             statsTable.ClassXP = { Nurse = 9999, Intern = 9999 }
             statsTable.UnlockedClasses = { Nurse = true, Intern = true, Doctor = true }
+            statsTable.Settings = statsTable.Settings or { EpilepsyMode = false }
+            statsTable.UnlockedSkins = statsTable.UnlockedSkins or {}
+            statsTable.EquippedSkins = statsTable.EquippedSkins or {}
         end
     end)
 end)
 
-print("[Part 1]: ระบบ Core และบล็อกเซิร์ฟเวอร์พร้อมใช้งาน!")
+print("[Part 1]: อัปเดตการแปลงค่า Cash = 999 และโครงสร้างตารางใหม่เรียบร้อย!")
+
 
 -- ====================================================
 -- FOXNAME HUB v6 (NAVY GLASS) - PART 2: UI & NEW FEATURES
