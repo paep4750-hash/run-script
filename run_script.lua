@@ -4,6 +4,7 @@ local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local playerGui = player:FindFirstChild("PlayerGui") or CoreGui
 -- Cleanup existing UI if present
@@ -48,7 +49,7 @@ local keyHeader = Instance.new("TextLabel")
 keyHeader.Size = UDim2.new(1, 0, 0, 60)
 keyHeader.BackgroundTransparency = 1
 keyHeader.Font = Enum.Font.GothamBold
-keyHeader.Text = "⚡ APEX COMMERCIAL HUB"
+keyHeader.Text = "⚡ APEX COMMERCIAL TDS HUB"
 keyHeader.TextColor3 = Theme.TextWhite
 keyHeader.TextSize = 18
 keyHeader.Parent = keyFrame
@@ -155,11 +156,11 @@ tbFix.BackgroundColor3 = Theme.CardBg
 tbFix.BorderSizePixel = 0
 tbFix.Parent = topBar
 local brandLabel = Instance.new("TextLabel")
-brandLabel.Size = UDim2.new(0, 250, 1, 0)
+brandLabel.Size = UDim2.new(0, 280, 1, 0)
 brandLabel.Position = UDim2.new(0, 18, 0, 0)
 brandLabel.BackgroundTransparency = 1
 brandLabel.Font = Enum.Font.GothamBold
-brandLabel.Text = "💎 APEX PREMIUM SUITE"
+brandLabel.Text = "💎 APEX TDS AUTO SUITE"
 brandLabel.TextColor3 = Theme.TextWhite
 brandLabel.TextSize = 15
 brandLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -255,8 +256,9 @@ scrollContent.Visible = true
 end
 return scrollContent
 end
--- STREAMING_CHUNK:Building Home & Settings Tabs...
+-- STREAMING_CHUNK:Building Dashboard, TDS Auto & Settings Tabs...
 local homeTab = createTabContent("🏠 Dashboard")
+local tdsTab = createTabContent("🤖 TDS Auto")
 local settingsTab = createTabContent("⚙️ Settings")
 -- Notification system function
 local function sendNotification(text)
@@ -313,14 +315,92 @@ local abStroke = Instance.new("UIStroke")
 abStroke.Color = Theme.Border
 abStroke.Parent = actionBtn
 actionBtn.MouseButton1Click:Connect(function()
-sendNotification("Apex UI is fully operational & commercial-ready!")
+sendNotification("Apex TDS Auto UI is fully operational!")
 end)
--- STREAMING_CHUNK:Configuring Settings Tab Controls & Game Stats...
+-- STREAMING_CHUNK:Configuring TDS Auto Skip Feature & Cobalt Logic...
+local tdsHeader = Instance.new("TextLabel")
+tdsHeader.Size = UDim2.new(1, 0, 0, 35)
+tdsHeader.BackgroundTransparency = 1
+tdsHeader.Font = Enum.Font.GothamBold
+tdsHeader.Text = "Tower Defense Simulator Automation"
+tdsHeader.TextColor3 = Theme.TextWhite
+tdsHeader.TextSize = 14
+tdsHeader.TextXAlignment = Enum.TextXAlignment.Left
+tdsHeader.Parent = tdsTab
+-- Toggle Auto Skip Component
+local autoSkipRow = Instance.new("Frame")
+autoSkipRow.Size = UDim2.new(1, 0, 0, 55)
+autoSkipRow.BackgroundColor3 = Theme.CardBg
+autoSkipRow.Parent = tdsTab
+local asrCorner = Instance.new("UICorner")
+asrCorner.CornerRadius = UDim.new(0, 10)
+asrCorner.Parent = autoSkipRow
+local asrStroke = Instance.new("UIStroke")
+asrStroke.Color = Theme.Border
+asrStroke.Parent = autoSkipRow
+local asrLabel = Instance.new("TextLabel")
+asrLabel.Size = UDim2.new(0.7, 0, 1, 0)
+asrLabel.Position = UDim2.new(0, 15, 0, 0)
+asrLabel.BackgroundTransparency = 1
+asrLabel.Font = Enum.Font.GothamMedium
+asrLabel.Text = "Auto Skip Waves (Cobalt Engine)"
+asrLabel.TextColor3 = Theme.TextWhite
+asrLabel.TextSize = 13
+asrLabel.TextXAlignment = Enum.TextXAlignment.Left
+asrLabel.Parent = autoSkipRow
+local autoSkipSwitch = Instance.new("TextButton")
+autoSkipSwitch.Size = UDim2.new(0, 48, 0, 26)
+autoSkipSwitch.Position = UDim2.new(1, -60, 0.5, -13)
+autoSkipSwitch.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+autoSkipSwitch.Text = ""
+autoSkipSwitch.AutoButtonColor = false
+autoSkipSwitch.Active = true
+autoSkipSwitch.Parent = autoSkipRow
+local atsCorner = Instance.new("UICorner")
+atsCorner.CornerRadius = UDim.new(1, 0)
+atsCorner.Parent = autoSkipSwitch
+local autoSkipDot = Instance.new("Frame")
+autoSkipDot.Size = UDim2.new(0, 20, 0, 20)
+autoSkipDot.Position = UDim2.new(0, 3, 0.5, -10)
+autoSkipDot.BackgroundColor3 = Theme.TextWhite
+autoSkipDot.Parent = autoSkipSwitch
+local atdCorner = Instance.new("UICorner")
+atdCorner.CornerRadius = UDim.new(1, 0)
+atdCorner.Parent = autoSkipDot
+-- Cobalt Auto Skip Loop Execution
+local isAutoSkipActive = false
+task.spawn(function()
+while true do
+if isAutoSkipActive then
+pcall(function()
+local remoteFunction = ReplicatedStorage:FindFirstChild("RemoteFunction")
+if remoteFunction then
+local Result = table.pack(remoteFunction:InvokeServer("Voting", "Skip"))
+local ExpectedResult = table.unpack({true})
+end
+end)
+end
+task.wait(1.5)
+end
+end)
+autoSkipSwitch.MouseButton1Click:Connect(function()
+isAutoSkipActive = not isAutoSkipActive
+if isAutoSkipActive then
+TweenService:Create(autoSkipSwitch, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Success}):Play()
+autoSkipDot:TweenPosition(UDim2.new(1, -23, 0.5, -10), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+sendNotification("Auto Wave Skip Enabled")
+else
+TweenService:Create(autoSkipSwitch, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 60)}):Play()
+autoSkipDot:TweenPosition(UDim2.new(0, 3, 0.5, -10), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+sendNotification("Auto Wave Skip Disabled")
+end
+end)
+-- STREAMING_CHUNK:Configuring Settings Tab Controls...
 local settingsHeader = Instance.new("TextLabel")
 settingsHeader.Size = UDim2.new(1, 0, 0, 35)
 settingsHeader.BackgroundTransparency = 1
 settingsHeader.Font = Enum.Font.GothamBold
-settingsHeader.Text = "User Preferences"
+settingsHeader.Text = "Settings & Preferences"
 settingsHeader.TextColor3 = Theme.TextWhite
 settingsHeader.TextSize = 14
 settingsHeader.TextXAlignment = Enum.TextXAlignment.Left
@@ -378,90 +458,10 @@ toggleDot:TweenPosition(UDim2.new(0, 3, 0.5, -10), Enum.EasingDirection.Out, Enu
 sendNotification("Sound effects disabled")
 end
 end)
--- Game Stats Monitor Header
-local statsHeader = Instance.new("TextLabel")
-statsHeader.Size = UDim2.new(1, 0, 0, 35)
-statsHeader.BackgroundTransparency = 1
-statsHeader.Font = Enum.Font.GothamBold
-statsHeader.Text = "📊 Game Stats Monitor (Configurable)"
-statsHeader.TextColor3 = Theme.TextWhite
-statsHeader.TextSize = 14
-statsHeader.TextXAlignment = Enum.TextXAlignment.Left
-statsHeader.Parent = settingsTab
--- Game Stats Card Container
-local statsCard = Instance.new("Frame")
-statsCard.Size = UDim2.new(1, 0, 0, 110)
-statsCard.BackgroundColor3 = Theme.CardBg
-statsCard.Parent = settingsTab
-local scCardCorner = Instance.new("UICorner")
-scCardCorner.CornerRadius = UDim.new(0, 10)
-scCardCorner.Parent = statsCard
-local scCardStroke = Instance.new("UIStroke")
-scCardStroke.Color = Theme.Border
-scCardStroke.Parent = statsCard
--- Coin Status Label
-local coinStatLabel = Instance.new("TextLabel")
-coinStatLabel.Size = UDim2.new(1, -30, 0, 30)
-coinStatLabel.Position = UDim2.new(0, 15, 0, 15)
-coinStatLabel.BackgroundTransparency = 1
-coinStatLabel.Font = Enum.Font.GothamMedium
-coinStatLabel.Text = "🪙 Coins: [Connect your game variable]"
-coinStatLabel.TextColor3 = Theme.TextMuted
-coinStatLabel.TextSize = 12
-coinStatLabel.TextXAlignment = Enum.TextXAlignment.Left
-coinStatLabel.Parent = statsCard
--- Gem Status Label
-local gemStatLabel = Instance.new("TextLabel")
-gemStatLabel.Size = UDim2.new(1, -30, 0, 30)
-gemStatLabel.Position = UDim2.new(0, 15, 0, 45)
-gemStatLabel.BackgroundTransparency = 1
-gemStatLabel.Font = Enum.Font.GothamMedium
-gemStatLabel.Text = "💎 Gems: [Connect your game variable]"
-gemStatLabel.TextColor3 = Theme.TextMuted
-gemStatLabel.TextSize = 12
-gemStatLabel.TextXAlignment = Enum.TextXAlignment.Left
-gemStatLabel.Parent = statsCard
--- Custom Status Label (Level / Power)
-local customStatLabel = Instance.new("TextLabel")
-customStatLabel.Size = UDim2.new(1, -30, 0, 30)
-customStatLabel.Position = UDim2.new(0, 15, 0, 75)
-customStatLabel.BackgroundTransparency = 1
-customStatLabel.Font = Enum.Font.GothamMedium
-customStatLabel.Text = "⭐ Status: [Connect your game variable]"
-customStatLabel.TextColor3 = Theme.TextMuted
-customStatLabel.TextSize = 12
-customStatLabel.TextXAlignment = Enum.TextXAlignment.Left
-customStatLabel.Parent = statsCard
--- STREAMING_CHUNK:Adding Live Stats Update Loop (For Buyers to Customize)...
-task.spawn(function()
-while task.wait(1) do
-pcall(function()
--- =========================================================================
--- 🛠️ คำแนะนำสำหรับผู้ซื้อนำไปปรับใช้ (Instructions for Buyers):
--- ให้เปลี่ยน path ด้านล่างนี้ให้ตรงกับ Leaderstats หรือค่าข้อมูลในเกมที่คุณต้องการดึงมาแสดง
--- ตัวอย่างเช่น: player:WaitForChild("leaderstats"):WaitForChild("Coins").Value
--- =========================================================================
-local leaderstats = player:FindFirstChild("leaderstats")
-if leaderstats then
-local coins = leaderstats:FindFirstChild("Coins") or leaderstats:FindFirstChild("Gold")
-local gems = leaderstats:FindFirstChild("Gems") or leaderstats:FindFirstChild("Diamonds")
-if coins then
-coinStatLabel.Text = "🪙 Coins: " .. tostring(coins.Value)
-coinStatLabel.TextColor3 = Theme.TextWhite
-end
-if gems then
-gemStatLabel.Text = "💎 Gems: " .. tostring(gems.Value)
-gemStatLabel.TextColor3 = Theme.TextWhite
-end
-end
-end)
-end
-end)
 -- STREAMING_CHUNK:Creating Fixed Bottom-Left Toggle & Window Controls...
 local floatingBtn = Instance.new("TextButton")
 floatingBtn.Name = "ApexFloatingToggle"
 floatingBtn.Size = UDim2.new(0, 48, 0, 48)
--- ล็อกตำแหน่งไว้ที่มุมซ้ายล่างของจอแบบตายตัว ไม่ขยับ ไม่บังปุ่มอัปเกรด
 floatingBtn.Position = UDim2.new(0, 20, 1, -68)
 floatingBtn.BackgroundColor3 = Theme.CardBg
 floatingBtn.Font = Enum.Font.GothamBold
@@ -515,7 +515,7 @@ mainFrame.Visible = true
 mainFrame:TweenSize(UDim2.new(0, 620, 0, 400), Enum.EasingDirection.Out, Enum.EasingStyle.Back, 0.4, true)
 end)
 else
-keyStatus.TextColor3 = Color3.fromRG
+keyStatus.TextColor3 = Color3.fromRGB(230, 60, 60)
 keyStatus.Text = "Status: Invalid Key! Use VIP-APEX-2026"
 end
 end
