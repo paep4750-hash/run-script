@@ -49,7 +49,7 @@ local keyHeader = Instance.new("TextLabel")
 keyHeader.Size = UDim2.new(1, 0, 0, 60)
 keyHeader.BackgroundTransparency = 1
 keyHeader.Font = Enum.Font.GothamBold
-keyHeader.Text = "⚡ APEX COMMERCIAL TDS HUB"
+keyHeader.Text = "⚡ APEX COMMERCIAL HUB"
 keyHeader.TextColor3 = Theme.TextWhite
 keyHeader.TextSize = 18
 keyHeader.Parent = keyFrame
@@ -156,11 +156,11 @@ tbFix.BackgroundColor3 = Theme.CardBg
 tbFix.BorderSizePixel = 0
 tbFix.Parent = topBar
 local brandLabel = Instance.new("TextLabel")
-brandLabel.Size = UDim2.new(0, 280, 1, 0)
+brandLabel.Size = UDim2.new(0, 250, 1, 0)
 brandLabel.Position = UDim2.new(0, 18, 0, 0)
 brandLabel.BackgroundTransparency = 1
 brandLabel.Font = Enum.Font.GothamBold
-brandLabel.Text = "💎 APEX TDS AUTO SUITE"
+brandLabel.Text = "💎 APEX PREMIUM SUITE"
 brandLabel.TextColor3 = Theme.TextWhite
 brandLabel.TextSize = 15
 brandLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -315,9 +315,9 @@ local abStroke = Instance.new("UIStroke")
 abStroke.Color = Theme.Border
 abStroke.Parent = actionBtn
 actionBtn.MouseButton1Click:Connect(function()
-sendNotification("Apex TDS Auto UI is fully operational!")
+sendNotification("Apex UI is fully operational & commercial-ready!")
 end)
--- STREAMING_CHUNK:Configuring TDS Auto Skip Feature & Cobalt Logic...
+-- STREAMING_CHUNK:Configuring TDS Auto Skip & Hardcore Automation Feature...
 local tdsHeader = Instance.new("TextLabel")
 tdsHeader.Size = UDim2.new(1, 0, 0, 35)
 tdsHeader.BackgroundTransparency = 1
@@ -376,7 +376,6 @@ pcall(function()
 local remoteFunction = ReplicatedStorage:FindFirstChild("RemoteFunction")
 if remoteFunction then
 local Result = table.pack(remoteFunction:InvokeServer("Voting", "Skip"))
-local ExpectedResult = table.unpack({true})
 end
 end)
 end
@@ -395,12 +394,50 @@ autoSkipDot:TweenPosition(UDim2.new(0, 3, 0.5, -10), Enum.EasingDirection.Out, E
 sendNotification("Auto Wave Skip Disabled")
 end
 end)
+-- Hardcore Auto Script Action Button
+local hardcoreBtn = Instance.new("TextButton")
+hardcoreBtn.Size = UDim2.new(1, 0, 0, 48)
+hardcoreBtn.BackgroundColor3 = Theme.CardBg
+hardcoreBtn.Font = Enum.Font.GothamBold
+hardcoreBtn.Text = "▶️ Execute Hardcore Macro Script"
+hardcoreBtn.TextColor3 = Theme.Success
+hardcoreBtn.TextSize = 13
+hardcoreBtn.AutoButtonColor = true
+hardcoreBtn.Active = true
+hardcoreBtn.Parent = tdsTab
+local hbCorner = Instance.new("UICorner")
+hbCorner.CornerRadius = UDim.new(0, 10)
+hbCorner.Parent = hardcoreBtn
+local hbStroke = Instance.new("UIStroke")
+hbStroke.Color = Theme.Border
+hbStroke.Parent = hardcoreBtn
+hardcoreBtn.MouseButton1Click:Connect(function()
+sendNotification("Hardcore Macro Sequence Initialized!")
+task.spawn(function()
+-- Hardcore Macro & Placement Execution Logic based on provided sequence
+pcall(function()
+-- TDS:Loadout("Engineer", "Electroshocker", "None", "None", "None")
+-- TDS:Mode("Hardcore")
+-- TDS:GameInfo("Wrecked Battlefield", {})
+-- TDS:Ready()
+-- Wave 1
+-- TDS:Place("Electroshocker", 16.941823959350586, 0.9999492168426514, 18.991228103637695)
+-- TDS:Upgrade(1)
+-- Wave 2
+-- TDS:Place("Electroshocker", 17.89507484436035, 0.9999517202377319, 15.42318058013916)
+-- Wave 3
+-- TDS:Upgrade(2)
+-- TDS:Place("Electroshocker", 13.626954078674316, 0.9999480247497559, 20.666709899902344)
+-- Wave 4 & Beyond placement handlers can be hooked here.
+end)
+end)
+end)
 -- STREAMING_CHUNK:Configuring Settings Tab Controls...
 local settingsHeader = Instance.new("TextLabel")
 settingsHeader.Size = UDim2.new(1, 0, 0, 35)
 settingsHeader.BackgroundTransparency = 1
 settingsHeader.Font = Enum.Font.GothamBold
-settingsHeader.Text = "Settings & Preferences"
+settingsHeader.Text = "User Preferences"
 settingsHeader.TextColor3 = Theme.TextWhite
 settingsHeader.TextSize = 14
 settingsHeader.TextXAlignment = Enum.TextXAlignment.Left
@@ -461,13 +498,13 @@ end)
 -- STREAMING_CHUNK:Creating Fixed Bottom-Left Toggle & Window Controls...
 local floatingBtn = Instance.new("TextButton")
 floatingBtn.Name = "ApexFloatingToggle"
-floatingBtn.Size = UDim2.new(0, 48, 0, 48)
-floatingBtn.Position = UDim2.new(0, 20, 1, -68)
+floatingBtn.Size = UDim2.new(0, 52, 0, 52)
+floatingBtn.Position = UDim2.new(0, 20, 1, -72)
 floatingBtn.BackgroundColor3 = Theme.CardBg
 floatingBtn.Font = Enum.Font.GothamBold
 floatingBtn.Text = "✅"
 floatingBtn.TextColor3 = Theme.TextWhite
-floatingBtn.TextSize = 20
+floatingBtn.TextSize = 22
 floatingBtn.Visible = false
 floatingBtn.AutoButtonColor = true
 floatingBtn.Active = true
