@@ -525,4 +525,106 @@ isSoundEnabled = not isSoundEnabled
 if isSoundEnabled then
 TweenService:Create(toggleSwitch, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Success}):Play()
 toggleDot:TweenPosition(UDim2.new(1, -23, 0.5, -10), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
-sendNotification("Sound effects enab
+sendNotification("Sound effects enabled successfully")
+else
+TweenService:Create(toggleSwitch, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 60)}):Play()
+toggleDot:TweenPosition(UDim2.new(0, 3, 0.5, -10), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+sendNotification("Sound effects disabled")
+end
+end)
+-- STREAMING_CHUNK:Creating Fixed Bottom-Left Toggle Button (Anchored properly)...
+local floatingBtn = Instance.new("TextButton")
+floatingBtn.Name = "ApexFloatingToggle"
+floatingBtn.Size = UDim2.new(0, 52, 0, 52)
+floatingBtn.Position = UDim2.new(0, 25, 1, -75)
+floatingBtn.AnchorPoint = Vector2.new(0, 0)
+floatingBtn.BackgroundColor3 = Theme.CardBg
+floatingBtn.Font = Enum.Font.GothamBold
+floatingBtn.Text = "✅"
+floatingBtn.TextColor3 = Theme.TextWhite
+floatingBtn.TextSize = 22
+floatingBtn.Visible = false
+floatingBtn.AutoButtonColor = true
+floatingBtn.Active = true
+floatingBtn.Parent = screenGui
+local fbCorner = Instance.new("UICorner")
+fbCorner.CornerRadius = UDim.new(1, 0)
+fbCorner.Parent = floatingBtn
+local fbStroke = Instance.new("UIStroke")
+fbStroke.Color = Theme.Accent
+fbStroke.Thickness = 2
+fbStroke.Parent = floatingBtn
+-- Floating Button Interaction State (Opens/Closes UI safely)
+local isUIVisible = false
+floatingBtn.MouseButton1Click:Connect(function()
+isUIVisible = not isUIVisible
+if isUIVisible then
+mainFrame.Visible = true
+mainFrame.Size = UDim2.new(0, 0, 0, 0)
+mainFrame:TweenSize(UDim2.new(0, 620, 0, 400), Enum.EasingDirection.Out, Enum.EasingStyle.Back, 0.3, true)
+else
+mainFrame:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.2, true, function()
+mainFrame.Visible = false
+end)
+end
+end)
+-- Key Verification Execution Logic (Robust event bindings)
+local function verifyKeyAction()
+local inputKey = keyInputBox.Text
+if inputKey == "VIP-APEX-2026" then
+keyStatus.TextColor3 = Theme.Success
+keyStatus.Text = "Status: Key Verified! Launching..."
+task.wait(0.3)
+keyFrame:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.3, true, function()
+keyFrame.Visible = false
+floatingBtn.Visible = true
+isUIVisible = true
+mainFrame.Size = UDim2.new(0, 0, 0, 0)
+mainFrame.Visible = true
+mainFrame:TweenSize(UDim2.new(0, 620, 0, 400), Enum.EasingDirection.Out, Enum.EasingStyle.Back, 0.4, true)
+end)
+else
+keyStatus.TextColor3 = Color3.fromRGB(230, 60, 60)
+keyStatus.Text = "Status: Invalid Key! Use VIP-APEX-2026"
+end
+end
+verifyBtn.MouseButton1Click:Connect(verifyKeyAction)
+keyInputBox.FocusLost:Connect(function(enterPressed)
+if enterPressed then
+verifyKeyAction()
+end
+end)
+copyKeyBtn.MouseButton1Click:Connect(function()
+if setclipboard then
+setclipboard("VIP-APEX-2026")
+keyStatus.TextColor3 = Theme.Accent
+keyStatus.Text = "Status: License key copied to clipboard!"
+else
+keyStatus.Text = "Status: Clipboard unsupported. Key: VIP-APEX-2026"
+end
+end)
+-- STREAMING_CHUNK:Implementing Window Draggable Functionality...
+local dragging, dragInput, dragStart, startPos
+topBar.InputBegan:Connect(function(input)
+if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+dragging = true
+dragStart = input.Position
+startPos = mainFrame.Position
+input.Changed:Connect(function()
+if input.UserInputState == Enum.UserInputState.End then
+dragging = false
+end
+end)
+end
+end)
+UserInputService.InputChanged:Connect(function(input)
+if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+dragInput = input
+end
+end)
+RunService.RenderStepped:Connect(function() -> RunService.RenderStepped:Connect(function()
+if dragging and dragInput then
+local delta = dragInput.Position - dragStart
+mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+end)
