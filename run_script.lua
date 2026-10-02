@@ -7,7 +7,6 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local playerGui = player:FindFirstChild("PlayerGui") or CoreGui
--- Cleanup existing UI if present
 if playerGui:FindFirstChild("ApexCommercialUI") then
 playerGui.ApexCommercialUI:Destroy()
 end
@@ -17,7 +16,6 @@ screenGui.Name = "ApexCommercialUI"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
--- Color Theme (Cyberpunk / Neon Violet Palette)
 local Theme = {
 Background = Color3.fromRGB(12, 12, 18),
 CardBg = Color3.fromRGB(18, 18, 26),
@@ -45,7 +43,6 @@ local keyStroke = Instance.new("UIStroke")
 keyStroke.Color = Theme.Accent
 keyStroke.Thickness = 2
 keyStroke.Parent = keyFrame
--- Key Title & Badge
 local keyHeader = Instance.new("TextLabel")
 keyHeader.Size = UDim2.new(1, 0, 0, 60)
 keyHeader.BackgroundTransparency = 1
@@ -141,7 +138,7 @@ local mainStroke = Instance.new("UIStroke")
 mainStroke.Color = Theme.Accent
 mainStroke.Thickness = 1.5
 mainStroke.Parent = mainFrame
--- Topbar Header (No close button, closed via floating toggle)
+-- Topbar Header (No close button as requested)
 local topBar = Instance.new("Frame")
 topBar.Size = UDim2.new(1, 0, 0, 50)
 topBar.BackgroundColor3 = Theme.CardBg
@@ -167,7 +164,6 @@ brandLabel.TextColor3 = Theme.TextWhite
 brandLabel.TextSize = 15
 brandLabel.TextXAlignment = Enum.TextXAlignment.Left
 brandLabel.Parent = topBar
--- Sidebar Tabs Navigation
 local sidebar = Instance.new("Frame")
 sidebar.Size = UDim2.new(0, 160, 1, -50)
 sidebar.Position = UDim2.new(0, 0, 0, 50)
@@ -183,7 +179,6 @@ sidePad.PaddingTop = UDim.new(0, 12)
 sidePad.PaddingLeft = UDim.new(0, 12)
 sidePad.PaddingRight = UDim.new(0, 12)
 sidePad.Parent = sidebar
--- Content Container
 local container = Instance.new("Frame")
 container.Size = UDim2.new(1, -160, 1, -50)
 container.Position = UDim2.new(0, 160, 0, 50)
@@ -243,11 +238,9 @@ scrollContent.Visible = true
 end
 return scrollContent
 end
--- STREAMING_CHUNK:Building Dashboard, TDS Auto & Settings Tabs...
 local homeTab = createTabContent("🏠 Dashboard")
 local tdsTab = createTabContent("🤖 TDS Auto")
 local settingsTab = createTabContent("⚙️ Settings")
--- Notification system function
 local function sendNotification(text)
 local notif = Instance.new("Frame")
 notif.Size = UDim2.new(0, 280, 0, 55)
@@ -275,7 +268,7 @@ notif:Destroy()
 end)
 end)
 end
--- Home Tab Content Elements
+-- Home Tab Content
 local welcomeCard = Instance.new("TextLabel")
 welcomeCard.Size = UDim2.new(1, 0, 0, 45)
 welcomeCard.BackgroundTransparency = 1
@@ -304,7 +297,7 @@ abStroke.Parent = actionBtn
 actionBtn.MouseButton1Click:Connect(function()
 sendNotification("Apex UI is fully operational & commercial-ready!")
 end)
--- STREAMING_CHUNK:Configuring TDS Auto Skip & Hardcore Macro Automation...
+-- TDS Auto Tab Content
 local tdsHeader = Instance.new("TextLabel")
 tdsHeader.Size = UDim2.new(1, 0, 0, 35)
 tdsHeader.BackgroundTransparency = 1
@@ -314,7 +307,6 @@ tdsHeader.TextColor3 = Theme.TextWhite
 tdsHeader.TextSize = 14
 tdsHeader.TextXAlignment = Enum.TextXAlignment.Left
 tdsHeader.Parent = tdsTab
--- Toggle Auto Skip Component
 local autoSkipRow = Instance.new("Frame")
 autoSkipRow.Size = UDim2.new(1, 0, 0, 55)
 autoSkipRow.BackgroundColor3 = Theme.CardBg
@@ -354,7 +346,6 @@ autoSkipDot.Parent = autoSkipSwitch
 local atdCorner = Instance.new("UICorner")
 atdCorner.CornerRadius = UDim.new(1, 0)
 atdCorner.Parent = autoSkipDot
--- Cobalt Auto Skip Loop Execution
 local isAutoSkipActive = false
 task.spawn(function()
 while true do
@@ -381,7 +372,6 @@ autoSkipDot:TweenPosition(UDim2.new(0, 3, 0.5, -10), Enum.EasingDirection.Out, E
 sendNotification("Auto Wave Skip Disabled")
 end
 end)
--- Hardcore Macro Script Action Button with sequential delay to prevent locking
 local hardcoreBtn = Instance.new("TextButton")
 hardcoreBtn.Size = UDim2.new(1, 0, 0, 48)
 hardcoreBtn.BackgroundColor3 = Theme.CardBg
@@ -404,67 +394,35 @@ task.spawn(function()
 pcall(function()
 local Event = ReplicatedStorage:FindFirstChild("RemoteFunction")
 if not Event then return end
--- 1. Place Electroshocker 1
-Event:InvokeServer("Troops", "Place", {
-Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
-Position = Vector3.new(17.569147109985352, 0.99994909763336182, 19.149379730224609)
-}, "Electroshocker")
+Event:InvokeServer("Troops", "Place", { Rotation = CFrame.new(0,0,0,1,-0,0,0,1,-0,0,0,1), Position = Vector3.new(17.569147109985352, 0.99994909763336182, 19.149379730224609) }, "Electroshocker")
 task.wait(1.5)
--- 2. Upgrade Vigilante (Tower index 1)
 local towers = workspace:FindFirstChild("Towers")
 if towers and towers:GetChildren()[1] then
-Event:InvokeServer("Troops", "Upgrade", "Set", {
-Troop = towers:GetChildren()[1]
-})
+Event:InvokeServer("Troops", "Upgrade", "Set", { Troop = towers:GetChildren()[1] })
 end
 task.wait(1.5)
--- 3. Place Electroshocker 2
-Event:InvokeServer("Troops", "Place", {
-Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
-Position = Vector3.new(18.405981063842773, 0.99995207786560059, 14.898340225219727)
-}, "Electroshocker")
+Event:InvokeServer("Troops", "Place", { Rotation = CFrame.new(0,0,0,1,-0,0,0,1,-0,0,0,1), Position = Vector3.new(18.405981063842773, 0.99995207786560059, 14.898340225219727) }, "Electroshocker")
 task.wait(1.5)
--- 4. Upgrade Tower index 2
 towers = workspace:FindFirstChild("Towers")
 if towers and towers:GetChildren()[2] then
-Event:InvokeServer("Troops", "Upgrade", "Set", {
-Troop = towers:GetChildren()[2]
-})
+Event:InvokeServer("Troops", "Upgrade", "Set", { Troop = towers:GetChildren()[2] })
 end
 task.wait(1.5)
--- 5. Upgrade Tower index 3
 towers = workspace:FindFirstChild("Towers")
 if towers and towers:GetChildren()[3] then
-Event:InvokeServer("Troops", "Upgrade", "Set", {
-Troop = towers:GetChildren()[3]
-})
+Event:InvokeServer("Troops", "Upgrade", "Set", { Troop = towers:GetChildren()[3] })
 end
 task.wait(1.5)
--- 6. Place Engineer 1
-Event:InvokeServer("Troops", "Place", {
-Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
-Position = Vector3.new(6.2736315727233887, 3.5999782085418701, 18.636436462402344)
-}, "Engineer")
+Event:InvokeServer("Troops", "Place", { Rotation = CFrame.new(0,0,0,1,-0,0,0,1,-0,0,0,1), Position = Vector3.new(6.2736315727233887, 3.5999782085418701, 18.636436462402344) }, "Engineer")
 task.wait(1.5)
--- 7. Place Engineer 2
-Event:InvokeServer("Troops", "Place", {
-Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
-Position = Vector3.new(3.0753617286682129, 3.5999782085418701, 18.906898498535156)
-}, "Engineer")
+Event:InvokeServer("Troops", "Place", { Rotation = CFrame.new(0,0,0,1,-0,0,0,1,-0,0,0,1), Position = Vector3.new(3.0753617286682129, 3.5999782085418701, 18.906898498535156) }, "Engineer")
 task.wait(1.5)
--- 8. Upgrade Tower index 5
 towers = workspace:FindFirstChild("Towers")
 if towers and towers:GetChildren()[5] then
-Event:InvokeServer("Troops", "Upgrade", "Set", {
-Troop = towers:GetChildren()[5]
-})
+Event:InvokeServer("Troops", "Upgrade", "Set", { Troop = towers:GetChildren()[5] })
 end
 task.wait(1.5)
--- 9. Place Engineer 3
-Event:InvokeServer("Troops", "Place", {
-Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
-Position = Vector3.new(9.3620901107788086, 3.5999886989593506, 16.302700042724609)
-}, "Engineer")
+Event:InvokeServer("Troops", "Place", { Rotation = CFrame.new(0,0,0,1,-0,0,0,1,-0,0,0,1), Position = Vector3.new(9.3620901107788086, 3.5999886989593506, 16.302700042724609) }, "Engineer")
 sendNotification("Hardcore Macro Sequence Completed!")
 end)
 end)
@@ -479,7 +437,6 @@ settingsHeader.TextColor3 = Theme.TextWhite
 settingsHeader.TextSize = 14
 settingsHeader.TextXAlignment = Enum.TextXAlignment.Left
 settingsHeader.Parent = settingsTab
--- Toggle Setting Component
 local toggleRow = Instance.new("Frame")
 toggleRow.Size = UDim2.new(1, 0, 0, 50)
 toggleRow.BackgroundColor3 = Theme.CardBg
@@ -532,7 +489,7 @@ toggleDot:TweenPosition(UDim2.new(0, 3, 0.5, -10), Enum.EasingDirection.Out, Enu
 sendNotification("Sound effects disabled")
 end
 end)
--- STREAMING_CHUNK:Creating Fixed Bottom-Left Toggle Button (Anchored properly)...
+-- STREAMING_CHUNK:Creating Fixed Bottom-Left Toggle Button...
 local floatingBtn = Instance.new("TextButton")
 floatingBtn.Name = "ApexFloatingToggle"
 floatingBtn.Size = UDim2.new(0, 52, 0, 52)
@@ -554,7 +511,6 @@ local fbStroke = Instance.new("UIStroke")
 fbStroke.Color = Theme.Accent
 fbStroke.Thickness = 2
 fbStroke.Parent = floatingBtn
--- Floating Button Interaction State (Opens/Closes UI safely)
 local isUIVisible = false
 floatingBtn.MouseButton1Click:Connect(function()
 isUIVisible = not isUIVisible
@@ -568,7 +524,6 @@ mainFrame.Visible = false
 end)
 end
 end)
--- Key Verification Execution Logic (Robust event bindings)
 local function verifyKeyAction()
 local inputKey = keyInputBox.Text
 if inputKey == "VIP-APEX-2026" then
@@ -622,7 +577,7 @@ if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType
 dragInput = input
 end
 end)
-RunService.RenderStepped:Connect(function() -> RunService.RenderStepped:Connect(function()
+RunService.RenderStepped:Connect(function()
 if dragging and dragInput then
 local delta = dragInput.Position - dragStart
 mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
