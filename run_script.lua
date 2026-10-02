@@ -33,6 +33,7 @@ local keyFrame = Instance.new("Frame")
 keyFrame.Name = "KeySystem"
 keyFrame.Size = UDim2.new(0, 460, 0, 310)
 keyFrame.Position = UDim2.new(0.5, -230, 0.5, -155)
+keyFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 keyFrame.BackgroundColor3 = Theme.Background
 keyFrame.BorderSizePixel = 0
 keyFrame.Active = true
@@ -73,7 +74,7 @@ keyInputBox.PlaceholderColor3 = Theme.TextMuted
 keyInputBox.Text = "VIP-APEX-2026"
 keyInputBox.TextColor3 = Theme.TextWhite
 keyInputBox.TextSize = 14
-keyInputBox.ClearTextOnFocus = true
+keyInputBox.ClearTextOnFocus = false
 keyInputBox.Parent = keyFrame
 local kiCorner = Instance.new("UICorner")
 kiCorner.CornerRadius = UDim.new(0, 10)
@@ -126,6 +127,7 @@ local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainDashboard"
 mainFrame.Size = UDim2.new(0, 620, 0, 400)
 mainFrame.Position = UDim2.new(0.5, -310, 0.5, -200)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.BackgroundColor3 = Theme.Background
 mainFrame.BorderSizePixel = 0
 mainFrame.ClipsDescendants = true
@@ -379,7 +381,7 @@ autoSkipDot:TweenPosition(UDim2.new(0, 3, 0.5, -10), Enum.EasingDirection.Out, E
 sendNotification("Auto Wave Skip Disabled")
 end
 end)
--- Hardcore Macro Script Action Button (Fixed sequence with delays and sequential upgrades)
+-- Hardcore Macro Script Action Button with sequential delay to prevent locking
 local hardcoreBtn = Instance.new("TextButton")
 hardcoreBtn.Size = UDim2.new(1, 0, 0, 48)
 hardcoreBtn.BackgroundColor3 = Theme.CardBg
@@ -407,60 +409,57 @@ Event:InvokeServer("Troops", "Place", {
 Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
 Position = Vector3.new(17.569147109985352, 0.99994909763336182, 19.149379730224609)
 }, "Electroshocker")
-task.wait(1)
--- 2. Upgrade Vigilante (Tower index 1 or named)
+task.wait(1.5)
+-- 2. Upgrade Vigilante (Tower index 1)
 local towers = workspace:FindFirstChild("Towers")
-if towers then
-local children = towers:GetChildren()
-if children[1] then
+if towers and towers:GetChildren()[1] then
 Event:InvokeServer("Troops", "Upgrade", "Set", {
-Troop = children[1]
+Troop = towers:GetChildren()[1]
 })
 end
-end
-task.wait(1)
+task.wait(1.5)
 -- 3. Place Electroshocker 2
 Event:InvokeServer("Troops", "Place", {
 Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
 Position = Vector3.new(18.405981063842773, 0.99995207786560059, 14.898340225219727)
 }, "Electroshocker")
-task.wait(1)
--- 4. Upgrade Child 2
-children = towers and towers:GetChildren() or {}
-if children[2] then
+task.wait(1.5)
+-- 4. Upgrade Tower index 2
+towers = workspace:FindFirstChild("Towers")
+if towers and towers:GetChildren()[2] then
 Event:InvokeServer("Troops", "Upgrade", "Set", {
-Troop = children[2]
+Troop = towers:GetChildren()[2]
 })
 end
-task.wait(1)
--- 5. Upgrade Child 3
-children = towers and towers:GetChildren() or {}
-if children[3] then
+task.wait(1.5)
+-- 5. Upgrade Tower index 3
+towers = workspace:FindFirstChild("Towers")
+if towers and towers:GetChildren()[3] then
 Event:InvokeServer("Troops", "Upgrade", "Set", {
-Troop = children[3]
+Troop = towers:GetChildren()[3]
 })
 end
-task.wait(1)
+task.wait(1.5)
 -- 6. Place Engineer 1
 Event:InvokeServer("Troops", "Place", {
 Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
 Position = Vector3.new(6.2736315727233887, 3.5999782085418701, 18.636436462402344)
 }, "Engineer")
-task.wait(1)
+task.wait(1.5)
 -- 7. Place Engineer 2
 Event:InvokeServer("Troops", "Place", {
 Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
 Position = Vector3.new(3.0753617286682129, 3.5999782085418701, 18.906898498535156)
 }, "Engineer")
-task.wait(1)
--- 8. Upgrade Child 5
-children = towers and towers:GetChildren() or {}
-if children[5] then
+task.wait(1.5)
+-- 8. Upgrade Tower index 5
+towers = workspace:FindFirstChild("Towers")
+if towers and towers:GetChildren()[5] then
 Event:InvokeServer("Troops", "Upgrade", "Set", {
-Troop = children[5]
+Troop = towers:GetChildren()[5]
 })
 end
-task.wait(1)
+task.wait(1.5)
 -- 9. Place Engineer 3
 Event:InvokeServer("Troops", "Place", {
 Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
@@ -526,106 +525,4 @@ isSoundEnabled = not isSoundEnabled
 if isSoundEnabled then
 TweenService:Create(toggleSwitch, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Success}):Play()
 toggleDot:TweenPosition(UDim2.new(1, -23, 0.5, -10), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
-sendNotification("Sound effects enabled successfully")
-else
-TweenService:Create(toggleSwitch, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 60)}):Play()
-toggleDot:TweenPosition(UDim2.new(0, 3, 0.5, -10), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
-sendNotification("Sound effects disabled")
-end
-end)
--- STREAMING_CHUNK:Creating Fixed Bottom-Left Toggle Button (Anchored properly)...
-local floatingBtn = Instance.new("TextButton")
-floatingBtn.Name = "ApexFloatingToggle"
-floatingBtn.Size = UDim2.new(0, 52, 0, 52)
-floatingBtn.Position = UDim2.new(0, 25, 1, -75)
-floatingBtn.AnchorPoint = Vector2.new(0, 0)
-floatingBtn.BackgroundColor3 = Theme.CardBg
-floatingBtn.Font = Enum.Font.GothamBold
-floatingBtn.Text = "✅"
-floatingBtn.TextColor3 = Theme.TextWhite
-floatingBtn.TextSize = 22
-floatingBtn.Visible = false
-floatingBtn.AutoButtonColor = true
-floatingBtn.Active = true
-floatingBtn.Parent = screenGui
-local fbCorner = Instance.new("UICorner")
-fbCorner.CornerRadius =Udim.new(1, 0)
-fbCorner.Parent = floatingBtn
-local fbStroke = Instance.new("UIStroke")
-fbStroke.Color = Theme.Accent
-fbStroke.Thickness = 2
-fbStroke.Parent = floatingBtn
--- Floating Button Interaction State (Opens/Closes UI safely)
-local isUIVisible = false
-floatingBtn.MouseButton1Click:Connect(function()
-isUIVisible = not isUIVisible
-if isUIVisible then
-mainFrame.Visible = true
-mainFrame.Size = UDim2.new(0, 0, 0, 0)
-mainFrame:TweenSize(UDim2.new(0, 620, 0, 400), Enum.EasingDirection.Out, Enum.EasingStyle.Back, 0.3, true)
-else
-mainFrame:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.2, true, function()
-mainFrame.Visible = false
-end)
-end
-end)
--- Key Verification Execution Logic
-local function verifyKeyAction()
-local inputKey = keyInputBox.Text
-if inputKey == "VIP-APEX-2026" then
-keyStatus.TextColor3 = Theme.Success
-keyStatus.Text = "Status: Key Verified! Launching..."
-task.wait(0.4)
-keyFrame:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.3, true, function()
-keyFrame.Visible = false
-floatingBtn.Visible = true
-isUIVisible = true
-mainFrame.Size = UDim2.new(0, 0, 0, 0)
-mainFrame.Visible = true
-mainFrame:TweenSize(UDim2.new(0, 620, 0, 400), Enum.EasingDirection.Out, Enum.EasingStyle.Back, 0.4, true)
-end)
-else
-keyStatus.TextColor3 = Color3.fromRGB(230, 60, 60)
-keyStatus.Text = "Status: Invalid Key! Use VIP-APEX-2026"
-end
-end
-verifyBtn.MouseButton1Click:Connect(verifyKeyAction)
-keyInputBox.FocusLost:Connect(function(enterPressed)
-if enterPressed then
-verifyKeyAction()
-end
-end)
-copyKeyBtn.MouseButton1Click:Connect(function()
-if setclipboard then
-setclipboard("VIP-APEX-2026")
-keyStatus.TextColor3 = Theme.Accent
-keyStatus.Text = "Status: License key copied to clipboard!"
-else
-keyStatus.Text = "Status: Clipboard unsupported. Key: VIP-APEX-2026"
-end
-end)
--- STREAMING_CHUNK:Implementing Window Draggable Functionality...
-local dragging, dragInput, dragStart, startPos
-topBar.InputBegan:Connect(function(input)
-if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-dragging = true
-dragStart = input.Position
-startPos = mainFrame.Position
-input.Changed:Connect(function()
-if input.UserInputState == Enum.UserInputState.End then
-dragging = false
-end
-end)
-end
-end)
-UserInputService.InputChanged:Connect(function(input)
-if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-dragInput = input
-end
-end)
-RunService.RenderStepped:Connect(function()
-if dragging and dragInput then
-local delta = dragInput.Position - dragStart
-mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-end
-end)
+sendNotification("Sound effects enab
