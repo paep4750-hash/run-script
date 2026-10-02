@@ -176,7 +176,7 @@ closeBtn.TextColor3 = Theme.TextWhite
 closeBtn.TextSize = 14
 closeBtn.AutoButtonColor = true
 closeBtn.Active = true
-closeBtn.Parent = topBar
+closeBtn.Parent = mainFrame
 local cbCorner = Instance.new("UICorner")
 cbCorner.CornerRadius = UDim.new(1, 0)
 cbCorner.Parent = closeBtn
@@ -394,7 +394,7 @@ autoSkipDot:TweenPosition(UDim2.new(0, 3, 0.5, -10), Enum.EasingDirection.Out, E
 sendNotification("Auto Wave Skip Disabled")
 end
 end)
--- Hardcore Auto Script Action Button
+-- Hardcore Macro Script Action Button
 local hardcoreBtn = Instance.new("TextButton")
 hardcoreBtn.Size = UDim2.new(1, 0, 0, 48)
 hardcoreBtn.BackgroundColor3 = Theme.CardBg
@@ -414,21 +414,53 @@ hbStroke.Parent = hardcoreBtn
 hardcoreBtn.MouseButton1Click:Connect(function()
 sendNotification("Hardcore Macro Sequence Initialized!")
 task.spawn(function()
--- Hardcore Macro & Placement Execution Logic based on provided sequence
 pcall(function()
 -- TDS:Loadout("Engineer", "Electroshocker", "None", "None", "None")
 -- TDS:Mode("Hardcore")
 -- TDS:GameInfo("Wrecked Battlefield", {})
 -- TDS:Ready()
--- Wave 1
+-- -- [ Wave 1 ] --
 -- TDS:Place("Electroshocker", 16.941823959350586, 0.9999492168426514, 18.991228103637695)
 -- TDS:Upgrade(1)
--- Wave 2
+-- -- [ Wave 2 ] --
 -- TDS:Place("Electroshocker", 17.89507484436035, 0.9999517202377319, 15.42318058013916)
--- Wave 3
+-- -- [ Wave 3 ] --
 -- TDS:Upgrade(2)
 -- TDS:Place("Electroshocker", 13.626954078674316, 0.9999480247497559, 20.666709899902344)
--- Wave 4 & Beyond placement handlers can be hooked here.
+-- -- [ Wave 4 ] --
+-- TDS:Upgrade(3)
+-- -- [ Wave 5 ] --
+-- TDS:Upgrade(3)
+-- -- [ Wave 7 ] --
+-- TDS:Upgrade(1)
+-- -- [ Wave 8 ] --
+-- TDS:Upgrade(2)
+-- TDS:Place("Engineer", 7.840076446533203, 3.59997820854187, 18.15336036682129)
+-- -- [ Wave 9 ] --
+-- TDS:Upgrade(4)
+-- TDS:Place("Engineer", 4.64924430847168, 3.59997820854187, 19.590303421020508)
+-- -- [ Wave 10 ] --
+-- TDS:Upgrade(5)
+-- TDS:Place("Engineer", 1.8050786256790161, 3.59997820854187, 20.995372772216797)
+-- -- [ Wave 11 ] --
+-- TDS:Upgrade(6)
+-- TDS:Place("Engineer", 9.243467330932617, 3.59997820854187, 15.461544036865234)
+-- -- [ Wave 12 ] --
+-- TDS:Upgrade(7)
+-- TDS:Place("Engineer", 5.203574180603027, 3.59997820854187, 16.043697357177734)
+-- TDS:Upgrade(8)
+-- -- [ Wave 13 ] --
+-- TDS:Place("Engineer", 2.012484550476074, 3.59997820854187, 17.680419921875)
+-- TDS:Upgrade(9)
+-- -- [ Wave 14 ] --
+-- TDS:Upgrade(4)
+-- TDS:Upgrade(5)
+-- -- [ Wave 15 ] --
+-- TDS:Upgrade(6)
+-- TDS:Upgrade(9)
+-- -- [ Wave 16 ] --
+-- TDS:Upgrade(8)
+-- TDS:Upgrade(7)
 end)
 end)
 end)
