@@ -139,7 +139,7 @@ local mainStroke = Instance.new("UIStroke")
 mainStroke.Color = Theme.Accent
 mainStroke.Thickness = 1.5
 mainStroke.Parent = mainFrame
--- Topbar Header
+-- Topbar Header (No close button needed, using floating toggle instead)
 local topBar = Instance.new("Frame")
 topBar.Size = UDim2.new(1, 0, 0, 50)
 topBar.BackgroundColor3 = Theme.CardBg
@@ -165,21 +165,6 @@ brandLabel.TextColor3 = Theme.TextWhite
 brandLabel.TextSize = 15
 brandLabel.TextXAlignment = Enum.TextXAlignment.Left
 brandLabel.Parent = topBar
--- Close / Hide Button
-local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 32, 0, 32)
-closeBtn.Position = UDim2.new(1, -42, 0.5, -16)
-closeBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.Text = "×"
-closeBtn.TextColor3 = Theme.TextWhite
-closeBtn.TextSize = 14
-closeBtn.AutoButtonColor = true
-closeBtn.Active = true
-closeBtn.Parent = mainFrame
-local cbCorner = Instance.new("UICorner")
-cbCorner.CornerRadius = UDim.new(1, 0)
-cbCorner.Parent = closeBtn
 -- Sidebar Tabs Navigation
 local sidebar = Instance.new("Frame")
 sidebar.Size = UDim2.new(0, 160, 1, -50)
@@ -317,7 +302,7 @@ abStroke.Parent = actionBtn
 actionBtn.MouseButton1Click:Connect(function()
 sendNotification("Apex UI is fully operational & commercial-ready!")
 end)
--- STREAMING_CHUNK:Configuring TDS Auto Skip & Hardcore Automation Feature...
+-- STREAMING_CHUNK:Configuring TDS Auto Skip & Hardcore Macro Automation...
 local tdsHeader = Instance.new("TextLabel")
 tdsHeader.Size = UDim2.new(1, 0, 0, 35)
 tdsHeader.BackgroundTransparency = 1
@@ -375,7 +360,7 @@ if isAutoSkipActive then
 pcall(function()
 local remoteFunction = ReplicatedStorage:FindFirstChild("RemoteFunction")
 if remoteFunction then
-local Result = table.pack(remoteFunction:InvokeServer("Voting", "Skip"))
+remoteFunction:InvokeServer("Voting", "Skip")
 end
 end)
 end
@@ -394,7 +379,7 @@ autoSkipDot:TweenPosition(UDim2.new(0, 3, 0.5, -10), Enum.EasingDirection.Out, E
 sendNotification("Auto Wave Skip Disabled")
 end
 end)
--- Hardcore Macro Script Action Button
+-- Hardcore Macro Script Action Button (Using your exact remote execution sequence)
 local hardcoreBtn = Instance.new("TextButton")
 hardcoreBtn.Size = UDim2.new(1, 0, 0, 48)
 hardcoreBtn.BackgroundColor3 = Theme.CardBg
@@ -415,52 +400,58 @@ hardcoreBtn.MouseButton1Click:Connect(function()
 sendNotification("Hardcore Macro Sequence Initialized!")
 task.spawn(function()
 pcall(function()
--- TDS:Loadout("Engineer", "Electroshocker", "None", "None", "None")
--- TDS:Mode("Hardcore")
--- TDS:GameInfo("Wrecked Battlefield", {})
--- TDS:Ready()
--- -- [ Wave 1 ] --
--- TDS:Place("Electroshocker", 16.941823959350586, 0.9999492168426514, 18.991228103637695)
--- TDS:Upgrade(1)
--- -- [ Wave 2 ] --
--- TDS:Place("Electroshocker", 17.89507484436035, 0.9999517202377319, 15.42318058013916)
--- -- [ Wave 3 ] --
--- TDS:Upgrade(2)
--- TDS:Place("Electroshocker", 13.626954078674316, 0.9999480247497559, 20.666709899902344)
--- -- [ Wave 4 ] --
--- TDS:Upgrade(3)
--- -- [ Wave 5 ] --
--- TDS:Upgrade(3)
--- -- [ Wave 7 ] --
--- TDS:Upgrade(1)
--- -- [ Wave 8 ] --
--- TDS:Upgrade(2)
--- TDS:Place("Engineer", 7.840076446533203, 3.59997820854187, 18.15336036682129)
--- -- [ Wave 9 ] --
--- TDS:Upgrade(4)
--- TDS:Place("Engineer", 4.64924430847168, 3.59997820854187, 19.590303421020508)
--- -- [ Wave 10 ] --
--- TDS:Upgrade(5)
--- TDS:Place("Engineer", 1.8050786256790161, 3.59997820854187, 20.995372772216797)
--- -- [ Wave 11 ] --
--- TDS:Upgrade(6)
--- TDS:Place("Engineer", 9.243467330932617, 3.59997820854187, 15.461544036865234)
--- -- [ Wave 12 ] --
--- TDS:Upgrade(7)
--- TDS:Place("Engineer", 5.203574180603027, 3.59997820854187, 16.043697357177734)
--- TDS:Upgrade(8)
--- -- [ Wave 13 ] --
--- TDS:Place("Engineer", 2.012484550476074, 3.59997820854187, 17.680419921875)
--- TDS:Upgrade(9)
--- -- [ Wave 14 ] --
--- TDS:Upgrade(4)
--- TDS:Upgrade(5)
--- -- [ Wave 15 ] --
--- TDS:Upgrade(6)
--- TDS:Upgrade(9)
--- -- [ Wave 16 ] --
--- TDS:Upgrade(8)
--- TDS:Upgrade(7)
+local Event = ReplicatedStorage:FindFirstChild("RemoteFunction")
+if not Event then return end
+-- 1. Place Electroshocker 1
+Event:InvokeServer("Troops", "Place", {
+Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
+Position = Vector3.new(17.569147109985352, 0.99994909763336182, 19.149379730224609)
+}, "Electroshocker")
+task.wait(0.5)
+-- 2. Upgrade Tower Vigilante
+Event:InvokeServer("Troops", "Upgrade", "Set", {
+Troop = workspace.Towers.Vigilante
+})
+task.wait(0.5)
+-- 3. Place Electroshocker 2
+Event:InvokeServer("Troops", "Place", {
+Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
+Position = Vector3.new(18.405981063842773, 0.99995207786560059, 14.898340225219727)
+}, "Electroshocker")
+task.wait(0.5)
+-- 4. Upgrade Child 2
+Event:InvokeServer("Troops", "Upgrade", "Set", {
+Troop = workspace.Towers:GetChildren()[2]
+})
+task.wait(0.5)
+-- 5. Upgrade Child 3
+Event:InvokeServer("Troops", "Upgrade", "Set", {
+Troop = workspace.Towers:GetChildren()[3]
+})
+task.wait(0.5)
+-- 6. Place Engineer 1
+Event:InvokeServer("Troops", "Place", {
+Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
+Position = Vector3.new(6.2736315727233887, 3.5999782085418701, 18.636436462402344)
+}, "Engineer")
+task.wait(0.5)
+-- 7. Place Engineer 2
+Event:InvokeServer("Troops", "Place", {
+Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
+Position = Vector3.new(3.0753617286682129, 3.5999782085418701, 18.906898498535156)
+}, "Engineer")
+task.wait(0.5)
+-- 8. Upgrade Child 5
+Event:InvokeServer("Troops", "Upgrade", "Set", {
+Troop = workspace.Towers:GetChildren()[5]
+})
+task.wait(0.5)
+-- 9. Place Engineer 3
+Event:InvokeServer("Troops", "Place", {
+Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
+Position = Vector3.new(9.3620901107788086, 3.5999886989593506, 16.302700042724609)
+}, "Engineer")
+sendNotification("Hardcore Macro Sequence Completed!")
 end)
 end)
 end)
@@ -531,7 +522,7 @@ end)
 local floatingBtn = Instance.new("TextButton")
 floatingBtn.Name = "ApexFloatingToggle"
 floatingBtn.Size = UDim2.new(0, 52, 0, 52)
-floatingBtn.Position = UDim2.new(0, 20, 1, -72)
+floatingBtn.Position = UDim2.new(0, 25, 0.5, -26)
 floatingBtn.BackgroundColor3 = Theme.CardBg
 floatingBtn.Font = Enum.Font.GothamBold
 floatingBtn.Text = "✅"
@@ -548,7 +539,7 @@ local fbStroke = Instance.new("UIStroke")
 fbStroke.Color = Theme.Accent
 fbStroke.Thickness = 2
 fbStroke.Parent = floatingBtn
--- Floating Button Interaction State
+-- Floating Button Interaction State (Opens/Closes UI safely)
 local isUIVisible = false
 floatingBtn.MouseButton1Click:Connect(function()
 isUIVisible = not isUIVisible
@@ -561,12 +552,6 @@ mainFrame:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingS
 mainFrame.Visible = false
 end)
 end
-end)
-closeBtn.MouseButton1Click:Connect(function()
-isUIVisible = false
-mainFrame:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.2, true, function()
-mainFrame.Visible = false
-end)
 end)
 -- Key Verification Execution Logic
 local function verifyKeyAction()
