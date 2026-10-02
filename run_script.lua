@@ -139,7 +139,7 @@ local mainStroke = Instance.new("UIStroke")
 mainStroke.Color = Theme.Accent
 mainStroke.Thickness = 1.5
 mainStroke.Parent = mainFrame
--- Topbar Header (No close button needed, using floating toggle instead)
+-- Topbar Header (No close button, closed via floating toggle)
 local topBar = Instance.new("Frame")
 topBar.Size = UDim2.new(1, 0, 0, 50)
 topBar.BackgroundColor3 = Theme.CardBg
@@ -379,7 +379,7 @@ autoSkipDot:TweenPosition(UDim2.new(0, 3, 0.5, -10), Enum.EasingDirection.Out, E
 sendNotification("Auto Wave Skip Disabled")
 end
 end)
--- Hardcore Macro Script Action Button (Using your exact remote execution sequence)
+-- Hardcore Macro Script Action Button (Fixed sequence with delays and sequential upgrades)
 local hardcoreBtn = Instance.new("TextButton")
 hardcoreBtn.Size = UDim2.new(1, 0, 0, 48)
 hardcoreBtn.BackgroundColor3 = Theme.CardBg
@@ -407,45 +407,60 @@ Event:InvokeServer("Troops", "Place", {
 Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
 Position = Vector3.new(17.569147109985352, 0.99994909763336182, 19.149379730224609)
 }, "Electroshocker")
-task.wait(0.5)
--- 2. Upgrade Tower Vigilante
+task.wait(1)
+-- 2. Upgrade Vigilante (Tower index 1 or named)
+local towers = workspace:FindFirstChild("Towers")
+if towers then
+local children = towers:GetChildren()
+if children[1] then
 Event:InvokeServer("Troops", "Upgrade", "Set", {
-Troop = workspace.Towers.Vigilante
+Troop = children[1]
 })
-task.wait(0.5)
+end
+end
+task.wait(1)
 -- 3. Place Electroshocker 2
 Event:InvokeServer("Troops", "Place", {
 Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
 Position = Vector3.new(18.405981063842773, 0.99995207786560059, 14.898340225219727)
 }, "Electroshocker")
-task.wait(0.5)
+task.wait(1)
 -- 4. Upgrade Child 2
+children = towers and towers:GetChildren() or {}
+if children[2] then
 Event:InvokeServer("Troops", "Upgrade", "Set", {
-Troop = workspace.Towers:GetChildren()[2]
+Troop = children[2]
 })
-task.wait(0.5)
+end
+task.wait(1)
 -- 5. Upgrade Child 3
+children = towers and towers:GetChildren() or {}
+if children[3] then
 Event:InvokeServer("Troops", "Upgrade", "Set", {
-Troop = workspace.Towers:GetChildren()[3]
+Troop = children[3]
 })
-task.wait(0.5)
+end
+task.wait(1)
 -- 6. Place Engineer 1
 Event:InvokeServer("Troops", "Place", {
 Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
 Position = Vector3.new(6.2736315727233887, 3.5999782085418701, 18.636436462402344)
 }, "Engineer")
-task.wait(0.5)
+task.wait(1)
 -- 7. Place Engineer 2
 Event:InvokeServer("Troops", "Place", {
 Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
 Position = Vector3.new(3.0753617286682129, 3.5999782085418701, 18.906898498535156)
 }, "Engineer")
-task.wait(0.5)
+task.wait(1)
 -- 8. Upgrade Child 5
+children = towers and towers:GetChildren() or {}
+if children[5] then
 Event:InvokeServer("Troops", "Upgrade", "Set", {
-Troop = workspace.Towers:GetChildren()[5]
+Troop = children[5]
 })
-task.wait(0.5)
+end
+task.wait(1)
 -- 9. Place Engineer 3
 Event:InvokeServer("Troops", "Place", {
 Rotation = CFrame.new(0, 0, 0, 1, -0, 0, 0, 1, -0, 0, 0, 1),
@@ -518,11 +533,12 @@ toggleDot:TweenPosition(UDim2.new(0, 3, 0.5, -10), Enum.EasingDirection.Out, Enu
 sendNotification("Sound effects disabled")
 end
 end)
--- STREAMING_CHUNK:Creating Fixed Bottom-Left Toggle & Window Controls...
+-- STREAMING_CHUNK:Creating Fixed Bottom-Left Toggle Button (Anchored properly)...
 local floatingBtn = Instance.new("TextButton")
 floatingBtn.Name = "ApexFloatingToggle"
 floatingBtn.Size = UDim2.new(0, 52, 0, 52)
-floatingBtn.Position = UDim2.new(0, 25, 0.5, -26)
+floatingBtn.Position = UDim2.new(0, 25, 1, -75)
+floatingBtn.AnchorPoint = Vector2.new(0, 0)
 floatingBtn.BackgroundColor3 = Theme.CardBg
 floatingBtn.Font = Enum.Font.GothamBold
 floatingBtn.Text = "✅"
@@ -533,7 +549,7 @@ floatingBtn.AutoButtonColor = true
 floatingBtn.Active = true
 floatingBtn.Parent = screenGui
 local fbCorner = Instance.new("UICorner")
-fbCorner.CornerRadius = UDim.new(1, 0)
+fbCorner.CornerRadius =Udim.new(1, 0)
 fbCorner.Parent = floatingBtn
 local fbStroke = Instance.new("UIStroke")
 fbStroke.Color = Theme.Accent
